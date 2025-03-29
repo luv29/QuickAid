@@ -23,8 +23,8 @@ async function bootstrap() {
     // Capture and log the response body
     const originalSend = res.send;
     res.send = function (body) {
-      console.log('Response:');
-      console.log(JSON.stringify(body, null, 2));
+      // console.log('Response:');
+      // console.log(JSON.stringify(body, null, 2));
       return originalSend.apply(this, arguments);
     };
 
