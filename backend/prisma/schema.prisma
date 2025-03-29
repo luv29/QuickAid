@@ -44,123 +44,123 @@ enum SOSStatus {
 
 // User model for normal users (drivers)
 model User {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  email         String    @unique
-  password      String
-  mobileNumber  String
-  cars          Car[]                         // List of cars owned by the user                      
-  bookings      Booking[] @relation("UserBookings") // User's booking history
-  emergencyContacts EmergencyContact[]         // Emergency contacts for SOS
-  reviews       Review[]  @relation("UserReviews")  // Reviews given by the user
-  sentMessages  Message[] @relation("UserMessages") // Messages sent by the user
-  sosEvents     SOS[]                        // SOS events triggered by the user
+  id                String             @id @default(auto()) @map("_id") @db.ObjectId
+  name              String? // Optional
+  phoneNumber       String             @unique
+  email             String? // Optional
+  password          String? // Optional
+  cars              Car[] // List of cars owned by the user                      
+  bookings          Booking[]          @relation("UserBookings") // User's booking history
+  emergencyContacts EmergencyContact[] // Emergency contacts for SOS
+  reviews           Review[]           @relation("UserReviews") // Reviews given by the user
+  sentMessages      Message[]          @relation("UserMessages") // Messages sent by the user
+  sosEvents         SOS[] // SOS events triggered by the user
 }
 
 // Mechanic model for service providers
 model Mechanic {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  email         String    @unique
-  password      String
-  mobileNumber  String
-  services      ServiceType[]                // Services offered by the mechanic
-  latitude      Float                        // Mechanic's fixed location
-  longitude     Float
-  location      Json                         // GeoJSON: { type: "Point", coordinates: [longitude, latitude] }
-  bookings      Booking[] @relation("MechanicBookings") // Bookings assigned to the mechanic
-  reviews       Review[]  @relation("MechanicReviews")  // Reviews received by the mechanic
-  sentMessages  Message[] @relation("MechanicMessages") // Messages sent by the mechanic
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  email        String        @unique
+  password     String
+  mobileNumber String
+  services     ServiceType[] // Services offered by the mechanic
+  latitude     Float // Mechanic's fixed location
+  longitude    Float
+  location     Json // GeoJSON: { type: "Point", coordinates: [longitude, latitude] }
+  bookings     Booking[]     @relation("MechanicBookings") // Bookings assigned to the mechanic
+  reviews      Review[]      @relation("MechanicReviews") // Reviews received by the mechanic
+  sentMessages Message[]     @relation("MechanicMessages") // Messages sent by the mechanic
 }
 
 // Car model for user's vehicles
 model Car {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId        String    @db.ObjectId
-  user          User      @relation(fields: [userId], references: [id])
-  make          String                        // e.g., Toyota
-  model         String                        // e.g., Corolla
-  year          Int                           // e.g., 2020
-  licensePlate  String                        // Car's license plate number
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String @db.ObjectId
+  user         User   @relation(fields: [userId], references: [id])
+  make         String // e.g., Toyota
+  model        String // e.g., Corolla
+  year         Int // e.g., 2020
+  licensePlate String // Car's license plate number
 }
 
 // Booking model for assistance requests
 model Booking {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId        String    @db.ObjectId
-  user          User      @relation("UserBookings", fields: [userId], references: [id])
-  mechanicId    String    @db.ObjectId
-  mechanic      Mechanic  @relation("MechanicBookings", fields: [mechanicId], references: [id])
-  serviceType   ServiceType                   // Type of service requested
-  latitude      Float                         // User's location at the time of booking
-  longitude     Float
-  address       String?                       // Optional address provided by the user
-  status        BookingStatus                 // Current status of the booking
-  createdAt     DateTime  @default(now())     // When the booking was created
-  updatedAt     DateTime  @updatedAt          // Last updated timestamp
-  payment       Payment?                      // Associated payment
-  chat          Chat?                         // Associated chat for real-time communication
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String        @db.ObjectId
+  user        User          @relation("UserBookings", fields: [userId], references: [id])
+  mechanicId  String        @db.ObjectId
+  mechanic    Mechanic      @relation("MechanicBookings", fields: [mechanicId], references: [id])
+  serviceType ServiceType // Type of service requested
+  latitude    Float // User's location at the time of booking
+  longitude   Float
+  address     String? // Optional address provided by the user
+  status      BookingStatus // Current status of the booking
+  createdAt   DateTime      @default(now()) // When the booking was created
+  updatedAt   DateTime      @updatedAt // Last updated timestamp
+  payment     Payment? // Associated payment
+  chat        Chat? // Associated chat for real-time communication
 }
 
 // EmergencyContact model for user's emergency contacts
 model EmergencyContact {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId        String    @db.ObjectId
-  user          User      @relation(fields: [userId], references: [id])
-  name          String                        // Contact's name
-  mobileNumber  String                        // Contact's phone number
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String @db.ObjectId
+  user         User   @relation(fields: [userId], references: [id])
+  name         String // Contact's name
+  mobileNumber String // Contact's phone number
 }
 
 // Review model for user feedback on mechanics
 model Review {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId        String    @db.ObjectId
-  user          User      @relation("UserReviews", fields: [userId], references: [id])
-  mechanicId    String    @db.ObjectId
-  mechanic      Mechanic  @relation("MechanicReviews", fields: [mechanicId], references: [id])
-  rating        Int                           // Rating (e.g., 1-5)
-  comment       String?                       // Optional review comment
-  createdAt     DateTime  @default(now())     // When the review was created
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  user       User     @relation("UserReviews", fields: [userId], references: [id])
+  mechanicId String   @db.ObjectId
+  mechanic   Mechanic @relation("MechanicReviews", fields: [mechanicId], references: [id])
+  rating     Int // Rating (e.g., 1-5)
+  comment    String? // Optional review comment
+  createdAt  DateTime @default(now()) // When the review was created
 }
 
 // Payment model for transactions
 model Payment {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  bookingId     String    @unique @db.ObjectId
-  booking       Booking   @relation(fields: [bookingId], references: [id])
-  amount        Float                         // Payment amount
-  status        PaymentStatus                 // Payment status
-  createdAt     DateTime  @default(now())     // When the payment was initiated
+  id        String        @id @default(auto()) @map("_id") @db.ObjectId
+  bookingId String        @unique @db.ObjectId
+  booking   Booking       @relation(fields: [bookingId], references: [id])
+  amount    Float // Payment amount
+  status    PaymentStatus // Payment status
+  createdAt DateTime      @default(now()) // When the payment was initiated
 }
 
 // Chat model for real-time communication
 model Chat {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  bookingId     String    @unique @db.ObjectId
-  booking       Booking   @relation(fields: [bookingId], references: [id])
-  messages      Message[]                     // List of messages in the chat
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  bookingId String    @unique @db.ObjectId
+  booking   Booking   @relation(fields: [bookingId], references: [id])
+  messages  Message[] // List of messages in the chat
 }
 
 // Message model for chat messages
 model Message {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  chatId        String    @db.ObjectId
-  chat          Chat      @relation(fields: [chatId], references: [id])
-  userSenderId  String?   @db.ObjectId          // ID of the user sending the message (if applicable)
-  userSender    User?     @relation("UserMessages", fields: [userSenderId], references: [id])
-  mechanicSenderId String? @db.ObjectId         // ID of the mechanic sending the message (if applicable)
-  mechanicSender Mechanic? @relation("MechanicMessages", fields: [mechanicSenderId], references: [id])
-  content       String                        // Message content
-  createdAt     DateTime  @default(now())     // When the message was sent
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  chatId           String    @db.ObjectId
+  chat             Chat      @relation(fields: [chatId], references: [id])
+  userSenderId     String?   @db.ObjectId // ID of the user sending the message (if applicable)
+  userSender       User?     @relation("UserMessages", fields: [userSenderId], references: [id])
+  mechanicSenderId String?   @db.ObjectId // ID of the mechanic sending the message (if applicable)
+  mechanicSender   Mechanic? @relation("MechanicMessages", fields: [mechanicSenderId], references: [id])
+  content          String // Message content
+  createdAt        DateTime  @default(now()) // When the message was sent
 }
 
 // SOS model for emergency alerts
 model SOS {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId        String    @db.ObjectId
-  user          User      @relation(fields: [userId], references: [id])
-  latitude      Float                         // Location of the SOS event
-  longitude     Float
-  createdAt     DateTime  @default(now())     // When the SOS was triggered
-  status        SOSStatus                     // Status of the SOS event
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String    @db.ObjectId
+  user      User      @relation(fields: [userId], references: [id])
+  latitude  Float // Location of the SOS event
+  longitude Float
+  createdAt DateTime  @default(now()) // When the SOS was triggered
+  status    SOSStatus // Status of the SOS event
 }
