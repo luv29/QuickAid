@@ -110,6 +110,7 @@ model EmergencyContact {
   user         User   @relation(fields: [userId], references: [id])
   name         String
   mobileNumber String
+  sosEvents    SOS[]    @relation("EmergencyContactSOS")
 }
 
 model Review {
@@ -152,11 +153,15 @@ model Message {
 }
 
 model SOS {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String    @db.ObjectId
-  user      User      @relation(fields: [userId], references: [id])
-  latitude  Float
-  longitude Float
-  createdAt DateTime  @default(now())
-  status    SOSStatus
+  id                  String             @id @default(auto()) @map("_id") @db.ObjectId
+  userId              String             @db.ObjectId
+  user                User               @relation(fields: [userId], references: [id])
+  emergencyContactId  String?            @db.ObjectId
+  emergencyContact    EmergencyContact?  @relation("EmergencyContactSOS", fields: [emergencyContactId], references: [id])
+  latitude            Float
+  longitude           Float
+  createdAt           DateTime           @default(now())
+  customMessage       String?
+  status              SOSStatus          @default(ACTIVE)
 }
+
