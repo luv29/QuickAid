@@ -64,14 +64,14 @@ model User {
 
 model Mechanic {
   id              String           @id @default(auto()) @map("_id") @db.ObjectId
-  name            String
-  email           String           @unique
-  password        String
-  mobileNumber    String
+  name            String?
+  email           String?
+  password        String?
+  phoneNumber     String           @unique
   services        ServiceType[]
-  latitude        Float
-  longitude       Float
-  location        Json // GeoJSON format for location
+  latitude        Float?
+  longitude       Float?
+  location        Json? // GeoJSON format for location
   serviceRequests ServiceRequest[] @relation("MechanicServiceRequests")
   reviews         Review[]         @relation("MechanicReviews")
   sentMessages    Message[]        @relation("MechanicMessages")
