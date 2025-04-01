@@ -48,6 +48,7 @@ enum ServiceStatus {
   COMPLETED
 }
 
+
 model User {
   id                String             @id @default(auto()) @map("_id") @db.ObjectId
   phoneNumber       String             @unique
@@ -57,7 +58,6 @@ model User {
   cars              Car[]
   serviceRequests   ServiceRequest[]   @relation("UserServiceRequests")
   emergencyContacts EmergencyContact[]
-  reviews           Review[]           @relation("UserReviews")
   sentMessages      Message[]          @relation("UserMessages")
   sosEvents         SOS[]
 }
@@ -73,7 +73,6 @@ model Mechanic {
   longitude       Float?
   location        Json? // GeoJSON format for location
   serviceRequests ServiceRequest[] @relation("MechanicServiceRequests")
-  reviews         Review[]         @relation("MechanicReviews")
   sentMessages    Message[]        @relation("MechanicMessages")
 }
 
@@ -102,6 +101,7 @@ model ServiceRequest {
   updatedAt   DateTime      @updatedAt
   payment     Payment?
   chat        Chat?
+  reviews     Review[]      @relation("ServiceRequestReviews")
 }
 
 model EmergencyContact {
@@ -113,14 +113,13 @@ model EmergencyContact {
 }
 
 model Review {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String   @db.ObjectId
-  user       User     @relation("UserReviews", fields: [userId], references: [id])
-  mechanicId String   @db.ObjectId
-  mechanic   Mechanic @relation("MechanicReviews", fields: [mechanicId], references: [id])
-  rating     Int
-  comment    String?
-  createdAt  DateTime @default(now())
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  serviceRequestId String         @db.ObjectId
+  serviceRequest   ServiceRequest @relation("ServiceRequestReviews", fields: [serviceRequestId], references: [id])
+  reviewerType     SenderType 
+  rating           Int
+  comment          String?
+  createdAt        DateTime       @default(now())
 }
 
 model Payment {
@@ -130,12 +129,12 @@ model Payment {
   amount           Float
   status           PaymentStatus
 
-  razorpayOrderId  String?        
-  razorpayPaymentId String?       
-  razorpaySignature String?       
-  
-  comment          String?
-  createdAt        DateTime       @default(now())
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  razorpaySignature String?
+
+  comment   String?
+  createdAt DateTime @default(now())
 }
 
 model Chat {
