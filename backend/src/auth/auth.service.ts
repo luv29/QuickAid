@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 
 enum AuthorizerType {
   USER,
+  MECHANIC,
 }
 
 @Injectable()
@@ -19,6 +20,11 @@ export class AuthService {
     switch (authorizerType) {
       case AuthorizerType.USER:
         authorizer = await this.db.user.findUnique({
+          where: { phoneNumber: phone },
+        });
+        break;
+      case AuthorizerType.MECHANIC:
+        authorizer = await this.db.mechanic.findUnique({
           where: { phoneNumber: phone },
         });
         break;
