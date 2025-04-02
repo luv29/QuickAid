@@ -60,7 +60,6 @@ model User {
   cars              Car[]
   serviceRequests   ServiceRequest[]   @relation("UserServiceRequests")
   emergencyContacts EmergencyContact[]
-  reviews           Review[]           @relation("UserReviews")
   sentMessages      Message[]          @relation("UserMessages")
   sosEvents         SOS[]
 }
@@ -131,6 +130,7 @@ model ServiceRequest {
   payment       Payment?
   chat          Chat?
   confirmations MechanicConfirmation[]
+  reviews       Review[]               @relation("ServiceRequestReviews")
 }
 
 model EmergencyContact {
@@ -139,18 +139,19 @@ model EmergencyContact {
   user         User   @relation(fields: [userId], references: [id])
   name         String
   mobileNumber String
-  sosEvents    SOS[]    @relation("EmergencyContactSOS")
+  sosEvents    SOS[]  @relation("EmergencyContactSOS")
 }
 
 model Review {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String   @db.ObjectId
-  user       User     @relation("UserReviews", fields: [userId], references: [id])
-  mechanicId String   @db.ObjectId
-  mechanic   Mechanic @relation("MechanicReviews", fields: [mechanicId], references: [id])
-  rating     Int
-  comment    String?
-  createdAt  DateTime @default(now())
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  serviceRequestId String         @db.ObjectId
+  serviceRequest   ServiceRequest @relation("ServiceRequestReviews", fields: [serviceRequestId], references: [id])
+  reviewerType     SenderType
+  rating           Int
+  comment          String?
+  createdAt        DateTime       @default(now())
+  Mechanic         Mechanic?      @relation("MechanicReviews", fields: [mechanicId], references: [id])
+  mechanicId       String?        @db.ObjectId
 }
 
 model Payment {
@@ -160,12 +161,12 @@ model Payment {
   amount           Float
   status           PaymentStatus
 
-  razorpayOrderId  String?        
-  razorpayPaymentId String?       
-  razorpaySignature String?       
-  
-  comment          String?
-  createdAt        DateTime       @default(now())
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  razorpaySignature String?
+
+  comment   String?
+  createdAt DateTime @default(now())
 }
 
 model Chat {
@@ -190,15 +191,14 @@ model Message {
 }
 
 model SOS {
-  id                  String             @id @default(auto()) @map("_id") @db.ObjectId
-  userId              String             @db.ObjectId
-  user                User               @relation(fields: [userId], references: [id])
-  emergencyContactId  String?            @db.ObjectId
-  emergencyContact    EmergencyContact?  @relation("EmergencyContactSOS", fields: [emergencyContactId], references: [id])
-  latitude            Float
-  longitude           Float
-  createdAt           DateTime           @default(now())
-  customMessage       String?
-  status              SOSStatus          @default(ACTIVE)
+  id                 String            @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String            @db.ObjectId
+  user               User              @relation(fields: [userId], references: [id])
+  emergencyContactId String?           @db.ObjectId
+  emergencyContact   EmergencyContact? @relation("EmergencyContactSOS", fields: [emergencyContactId], references: [id])
+  latitude           Float
+  longitude          Float
+  createdAt          DateTime          @default(now())
+  customMessage      String?
+  status             SOSStatus         @default(ACTIVE)
 }
-

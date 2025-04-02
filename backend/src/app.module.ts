@@ -16,6 +16,7 @@ import { MailService } from './mail/mail.service';
 import { MailModule } from './mail/mail.module';
 import { MechanicModule } from './mechanic/mechanic.module';
 import { PaymentModule } from './payment/payment.module';
+import { ReviewsModule } from './reviews/reviews.module';
 
 @Module({
   imports: [
@@ -33,7 +34,9 @@ import { PaymentModule } from './payment/payment.module';
     MailModule,
     MechanicModule,
     PaymentModule,
+    ReviewsModule,
   ],
+
   controllers: [AppController],
   providers: [AppService, MailService],
 })
