@@ -159,6 +159,12 @@ model Payment {
   serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id])
   amount           Float
   status           PaymentStatus
+
+  razorpayOrderId  String?        
+  razorpayPaymentId String?       
+  razorpaySignature String?       
+  
+  comment          String?
   createdAt        DateTime       @default(now())
 }
 

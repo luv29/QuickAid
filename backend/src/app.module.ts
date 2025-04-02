@@ -14,6 +14,8 @@ import { BookingModule } from './booking/booking.module';
 import { SosModule } from './sos/sos.module';
 import { MailService } from './mail/mail.service';
 import { MailModule } from './mail/mail.module';
+import { MechanicModule } from './mechanic/mechanic.module';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [
@@ -29,6 +31,8 @@ import { MailModule } from './mail/mail.module';
     BookingModule,
     SosModule,
     MailModule,
+    MechanicModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService, MailService],
