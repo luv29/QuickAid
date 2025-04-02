@@ -10,6 +10,7 @@ datasource db {
 enum ServiceType {
   TOW
   LOCKOUT
+  BATTERY_JUMP
   FUEL_DELIVERY
   TIRE_CHANGE
   JUMP_START
@@ -43,9 +44,11 @@ enum SOSStatus {
 
 enum ServiceStatus {
   REQUESTED
-  CANCELLED
+  NO_MECHANICS_FOUND
   CONFIRMED
+  IN_PROGRESS
   COMPLETED
+  CANCELLED
 }
 
 model User {
@@ -62,19 +65,43 @@ model User {
   sosEvents         SOS[]
 }
 
+model MechanicConfirmation {
+  id               String             @id @default(auto()) @map("_id") @db.ObjectId
+  mechanicId       String             @db.ObjectId
+  mechanic         Mechanic           @relation(fields: [mechanicId], references: [id])
+  serviceRequestId String             @db.ObjectId
+  serviceRequest   ServiceRequest     @relation(fields: [serviceRequestId], references: [id])
+  status           ConfirmationStatus @default(PENDING)
+  distanceText     String
+  distanceValue    Int
+  durationText     String
+  durationValue    Int
+  estimatedCost    Float
+  respondedAt      DateTime?
+  createdAt        DateTime           @default(now())
+}
+
+enum ConfirmationStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  STARTED
+}
+
 model Mechanic {
-  id              String           @id @default(auto()) @map("_id") @db.ObjectId
-  name            String
-  email           String           @unique
-  password        String
-  mobileNumber    String
-  services        ServiceType[]
-  latitude        Float
-  longitude       Float
-  location        Json // GeoJSON format for location
-  serviceRequests ServiceRequest[] @relation("MechanicServiceRequests")
-  reviews         Review[]         @relation("MechanicReviews")
-  sentMessages    Message[]        @relation("MechanicMessages")
+  id                   String                 @id @default(auto()) @map("_id") @db.ObjectId
+  name                 String
+  email                String                 @unique
+  phoneNumber          String                 @unique
+  services             ServiceType[]
+  latitude             Float
+  longitude            Float
+  location             Json
+  expoToken            String?
+  serviceRequests      ServiceRequest[]       @relation("MechanicServiceRequests")
+  reviews              Review[]               @relation("MechanicReviews")
+  sentMessages         Message[]              @relation("MechanicMessages")
+  MechanicConfirmation MechanicConfirmation[]
 }
 
 model Car {
@@ -88,20 +115,22 @@ model Car {
 }
 
 model ServiceRequest {
-  id          String        @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String        @db.ObjectId
-  user        User          @relation("UserServiceRequests", fields: [userId], references: [id])
-  mechanicId  String        @db.ObjectId
-  mechanic    Mechanic      @relation("MechanicServiceRequests", fields: [mechanicId], references: [id])
-  serviceType ServiceType
-  latitude    Float
-  longitude   Float
-  address     String?
-  status      ServiceStatus
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  payment     Payment?
-  chat        Chat?
+  id            String                 @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String                 @db.ObjectId
+  user          User                   @relation("UserServiceRequests", fields: [userId], references: [id])
+  mechanicId    String?                @db.ObjectId
+  mechanic      Mechanic?              @relation("MechanicServiceRequests", fields: [mechanicId], references: [id])
+  serviceType   ServiceType
+  description   String?
+  latitude      Float
+  longitude     Float
+  address       String?
+  status        ServiceStatus          @default(REQUESTED)
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  payment       Payment?
+  chat          Chat?
+  confirmations MechanicConfirmation[]
 }
 
 model EmergencyContact {
@@ -137,18 +166,20 @@ model Chat {
   serviceRequestId String         @unique @db.ObjectId
   serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id])
   messages         Message[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 }
 
 model Message {
-  id               String    @id @default(auto()) @map("_id") @db.ObjectId
-  chatId           String    @db.ObjectId
-  chat             Chat      @relation(fields: [chatId], references: [id])
-  userSenderId     String?   @db.ObjectId
-  userSender       User?     @relation("UserMessages", fields: [userSenderId], references: [id])
-  mechanicSenderId String?   @db.ObjectId
-  mechanicSender   Mechanic? @relation("MechanicMessages", fields: [mechanicSenderId], references: [id])
-  content          String
-  createdAt        DateTime  @default(now())
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  chatId     String    @db.ObjectId
+  chat       Chat      @relation(fields: [chatId], references: [id])
+  senderId   String?   @db.ObjectId
+  senderType String
+  user       User?     @relation("UserMessages", fields: [senderId], references: [id])
+  mechanic   Mechanic? @relation("MechanicMessages", fields: [senderId], references: [id])
+  content    String
+  createdAt  DateTime  @default(now())
 }
 
 model SOS {

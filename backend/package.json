@@ -25,6 +25,8 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.1.0",
     "@prisma/client": "6.5.0",
+    "axios": "^1.8.4",
+    "expo-server-sdk": "^3.14.0",
     "jsonwebtoken": "^9.0.2",
     "prisma": "^6.5.0",
     "reflect-metadata": "^0.2.2",
