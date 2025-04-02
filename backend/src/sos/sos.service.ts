@@ -23,7 +23,8 @@ export class SosService {
         private readonly mailService: MailService,
     ) { }
 
-    async createSOS(input: SOSInput, userId: string) {
+    async createSOS(input: SOSInput) {
+      const userId = input.userId;
         const { latitude, longitude, emergencyContact, customMessage } = input;
 
         let ecRecord;

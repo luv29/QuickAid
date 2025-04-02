@@ -7,8 +7,7 @@ export class SosController {
 
   @Post()
   async createSOS(@Body() sosInput: SOSInput, @Req() req: any) {
-    const userId = sosInput.userId;
-    const newSOS = await this.sosService.createSOS(sosInput, userId);
+    const newSOS = await this.sosService.createSOS(sosInput);
     return { success: true, data: newSOS };
   }
 }
