@@ -11,6 +11,9 @@ import { DistanceCalculationModule } from './distance-calculation/distance-calcu
 import { CostCalculationModule } from './cost-calculation/cost-calculation.module';
 import { NotificationModule } from './notification/notification.module';
 import { BookingModule } from './booking/booking.module';
+import { SosModule } from './sos/sos.module';
+import { MailService } from './mail/mail.service';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -24,8 +27,10 @@ import { BookingModule } from './booking/booking.module';
     CostCalculationModule,
     NotificationModule,
     BookingModule,
+    SosModule,
+    MailModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, MailService],
 })
 export class AppModule {}
