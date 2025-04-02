@@ -1,6 +1,5 @@
 node_modules
 dist/*.map
-src
 test
 *.log
 .env
