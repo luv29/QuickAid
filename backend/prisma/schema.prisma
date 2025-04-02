@@ -89,13 +89,13 @@ enum ConfirmationStatus {
 
 model Mechanic {
   id                   String                 @id @default(auto()) @map("_id") @db.ObjectId
-  name                 String
-  email                String                 @unique
+  name                 String?
+  email                String?                 @unique
   phoneNumber          String                 @unique
   services             ServiceType[]
-  latitude             Float
-  longitude            Float
-  location             Json
+  latitude             Float?
+  longitude            Float?
+  location             Json?
   expoToken            String?
   serviceRequests      ServiceRequest[]       @relation("MechanicServiceRequests")
   reviews              Review[]               @relation("MechanicReviews")

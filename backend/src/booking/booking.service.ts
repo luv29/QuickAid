@@ -183,7 +183,7 @@ export class BookingService {
     await this.prisma.mechanicConfirmation.update({
       where: { id: confirmation.id },
       data: {
-        status: isAccepted ? 'ACCEPTED' : 'DECLINED',
+        status: isAccepted ? 'CONFIRMED' : 'REJECTED',
         respondedAt: new Date(),
       },
     });
@@ -270,7 +270,7 @@ export class BookingService {
       where: {
         serviceRequestId,
         mechanicId,
-        status: 'ACCEPTED',
+        status: 'CONFIRMED',
       },
     });
 
