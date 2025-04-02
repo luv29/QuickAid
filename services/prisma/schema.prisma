@@ -1,0 +1,204 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum ServiceType {
+  TOW
+  LOCKOUT
+  BATTERY_JUMP
+  FUEL_DELIVERY
+  TIRE_CHANGE
+  JUMP_START
+  ELECTRIC_CHARGING
+  CAR_REPAIR
+  CUSTOM_SERVICE
+}
+
+enum BookingStatus {
+  BOOKED
+  CANCELLED
+  CONFIRMED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum SenderType {
+  USER
+  MECHANIC
+}
+
+enum SOSStatus {
+  ACTIVE
+  RESOLVED
+}
+
+enum ServiceStatus {
+  REQUESTED
+  NO_MECHANICS_FOUND
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id                String             @id @default(auto()) @map("_id") @db.ObjectId
+  phoneNumber       String             @unique
+  name              String?
+  email             String?
+  password          String?
+  cars              Car[]
+  serviceRequests   ServiceRequest[]   @relation("UserServiceRequests")
+  emergencyContacts EmergencyContact[]
+  sentMessages      Message[]          @relation("UserMessages")
+  sosEvents         SOS[]
+}
+
+model MechanicConfirmation {
+  id               String             @id @default(auto()) @map("_id") @db.ObjectId
+  mechanicId       String             @db.ObjectId
+  mechanic         Mechanic           @relation(fields: [mechanicId], references: [id])
+  serviceRequestId String             @db.ObjectId
+  serviceRequest   ServiceRequest     @relation(fields: [serviceRequestId], references: [id])
+  status           ConfirmationStatus @default(PENDING)
+  distanceText     String
+  distanceValue    Int
+  durationText     String
+  durationValue    Int
+  estimatedCost    Float
+  respondedAt      DateTime?
+  createdAt        DateTime           @default(now())
+}
+
+enum ConfirmationStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  STARTED
+}
+
+model Mechanic {
+  id                   String                 @id @default(auto()) @map("_id") @db.ObjectId
+  name                 String?
+  email                String?                 @unique
+  phoneNumber          String                 @unique
+  services             ServiceType[]
+  latitude             Float?
+  longitude            Float?
+  location             Json?
+  expoToken            String?
+  serviceRequests      ServiceRequest[]       @relation("MechanicServiceRequests")
+  reviews              Review[]               @relation("MechanicReviews")
+  sentMessages         Message[]              @relation("MechanicMessages")
+  MechanicConfirmation MechanicConfirmation[]
+}
+
+model Car {
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String @db.ObjectId
+  user         User   @relation(fields: [userId], references: [id])
+  make         String
+  model        String
+  year         Int
+  licensePlate String
+}
+
+model ServiceRequest {
+  id            String                 @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String                 @db.ObjectId
+  user          User                   @relation("UserServiceRequests", fields: [userId], references: [id])
+  mechanicId    String?                @db.ObjectId
+  mechanic      Mechanic?              @relation("MechanicServiceRequests", fields: [mechanicId], references: [id])
+  serviceType   ServiceType
+  description   String?
+  latitude      Float
+  longitude     Float
+  address       String?
+  status        ServiceStatus          @default(REQUESTED)
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  payment       Payment?
+  chat          Chat?
+  confirmations MechanicConfirmation[]
+  reviews       Review[]               @relation("ServiceRequestReviews")
+}
+
+model EmergencyContact {
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String @db.ObjectId
+  user         User   @relation(fields: [userId], references: [id])
+  name         String
+  mobileNumber String
+  sosEvents    SOS[]  @relation("EmergencyContactSOS")
+}
+
+model Review {
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  serviceRequestId String         @db.ObjectId
+  serviceRequest   ServiceRequest @relation("ServiceRequestReviews", fields: [serviceRequestId], references: [id])
+  reviewerType     SenderType
+  rating           Int
+  comment          String?
+  createdAt        DateTime       @default(now())
+  Mechanic         Mechanic?      @relation("MechanicReviews", fields: [mechanicId], references: [id])
+  mechanicId       String?        @db.ObjectId
+}
+
+model Payment {
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  serviceRequestId String         @unique @db.ObjectId
+  serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id])
+  amount           Float
+  status           PaymentStatus
+
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  razorpaySignature String?
+
+  comment   String?
+  createdAt DateTime @default(now())
+}
+
+model Chat {
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  serviceRequestId String         @unique @db.ObjectId
+  serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id])
+  messages         Message[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model Message {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  chatId     String    @db.ObjectId
+  chat       Chat      @relation(fields: [chatId], references: [id])
+  senderId   String?   @db.ObjectId
+  senderType String
+  user       User?     @relation("UserMessages", fields: [senderId], references: [id])
+  mechanic   Mechanic? @relation("MechanicMessages", fields: [senderId], references: [id])
+  content    String
+  createdAt  DateTime  @default(now())
+}
+
+model SOS {
+  id                 String            @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String            @db.ObjectId
+  user               User              @relation(fields: [userId], references: [id])
+  emergencyContactId String?           @db.ObjectId
+  emergencyContact   EmergencyContact? @relation("EmergencyContactSOS", fields: [emergencyContactId], references: [id])
+  latitude           Float
+  longitude          Float
+  createdAt          DateTime          @default(now())
+  customMessage      String?
+  status             SOSStatus         @default(ACTIVE)
+}

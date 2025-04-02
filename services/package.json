@@ -1,0 +1,47 @@
+{
+  "name": "@quick-aid/core",
+  "version": "1.0.2",
+  "type": "module",
+  "description": "Combined package for Quick Aid services and types",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "build": "npm run generate && tsup src/index.ts --format cjs,esm --dts",
+    "prepublishOnly": "npm run build",
+    "generate": "prisma generate --schema=./prisma/schema.prisma",
+    "push": "prisma db push --skip-generate",
+    "postinstall": "prisma generate"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./services": {
+      "types": "./dist/services/index.d.ts",
+      "import": "./dist/services/index.js",
+      "default": "./dist/services/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js",
+      "default": "./dist/types/index.js"
+    }
+  },
+  "dependencies": {
+    "@prisma/client": "^6.5.0",
+    "axios": "^1.7.9"
+  },
+  "devDependencies": {
+    "prisma": "^6.5.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Jayesh Savaliya",
+  "license": "ISC"
+}
