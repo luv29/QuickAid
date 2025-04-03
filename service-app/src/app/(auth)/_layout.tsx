@@ -1,13 +1,16 @@
-import { Stack } from "expo-router";
+import { Redirect, Stack } from "expo-router";
+import { useAuthStore } from '@/src/state/useAuth'
 
-const Layout = () => {
+export default function AuthRoutesLayout() {
+  const { isAuthenticated } = useAuthStore();
+
+  console.log('This is signed in function', isAuthenticated);
+
+  if (isAuthenticated) {
+    return <Redirect href={"/(app)"} />;
+  }
+
   return (
-    <Stack>
-      <Stack.Screen name="welcome" options={{ headerShown: false }} />
-      <Stack.Screen name="sign-up" options={{ headerShown: false }} />
-      <Stack.Screen name="sign-in" options={{ headerShown: false }} />
-    </Stack>
+    <Stack screenOptions={{ headerShown: false }} initialRouteName="sign-in" />
   );
-};
-
-export default Layout;
+}

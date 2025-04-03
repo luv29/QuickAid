@@ -87,20 +87,40 @@ enum ConfirmationStatus {
   STARTED
 }
 
+type Address {
+  address String?
+  city    String?
+  pincode String?
+  lat     Float?
+  lng     Float?
+}
+
+type BankDetails {
+  accountHolderName String
+  accountNumber     String
+  bankName          String
+  ifscCode          String
+}
+
 model Mechanic {
-  id                   String                 @id @default(auto()) @map("_id") @db.ObjectId
-  name                 String?
-  email                String?                 @unique
-  phoneNumber          String                 @unique
-  services             ServiceType[]
-  latitude             Float?
-  longitude            Float?
-  location             Json?
-  expoToken            String?
-  serviceRequests      ServiceRequest[]       @relation("MechanicServiceRequests")
-  reviews              Review[]               @relation("MechanicReviews")
-  sentMessages         Message[]              @relation("MechanicMessages")
-  MechanicConfirmation MechanicConfirmation[]
+  id                      String                 @id @default(auto()) @map("_id") @db.ObjectId
+  name                    String?
+  email                   String?               
+  phoneNumber             String                 @unique
+  approved                Boolean                @default(false)
+  isPhoneNumberVerified   Boolean                @default(false)
+  alternatePhoneNumber    String?
+  address                 Address?
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+  minCommissionPercentage Float?
+  BankDetails             BankDetails?
+  services                ServiceType[]
+  expoToken               String?
+  sentMessages            Message[]              @relation("MechanicMessages")
+  serviceRequests         ServiceRequest[]       @relation("MechanicServiceRequests")
+  reviews                 Review[]               @relation("MechanicReviews")
+  MechanicConfirmation    MechanicConfirmation[]
 }
 
 model Car {

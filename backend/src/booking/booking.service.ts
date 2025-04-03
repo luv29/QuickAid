@@ -68,8 +68,7 @@ export class BookingService {
         data.serviceType,
       );
 
-
-    console.log("this is nearby mechanics",JSON.stringify(nearbyMechanics)); 
+    console.log('this is nearby mechanics', JSON.stringify(nearbyMechanics));
 
     if (nearbyMechanics.length === 0) {
       // Update service request status to NO_MECHANICS_FOUND
@@ -91,8 +90,8 @@ export class BookingService {
         await this.distanceCalculationService.calculateDistance(
           data.latitude,
           data.longitude,
-          mechanic.latitude,
-          mechanic.longitude,
+          mechanic.address.lat,
+          mechanic.address.lng,
         );
 
       console.log('this is ****************************', distanceResult);
@@ -112,7 +111,6 @@ export class BookingService {
       );
 
       console.log('this is **************************** cost', cost);
-      
 
       mechanicOffers.push({
         id: mechanic.id,

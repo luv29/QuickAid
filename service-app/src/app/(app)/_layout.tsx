@@ -1,7 +1,13 @@
 import { Stack } from "expo-router";
-
-const AppLayout = () => {
-  return <Stack />;
-};
-
-export default AppLayout;
+export default function AppLayout() {
+  return (
+    <>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+      </Stack>
+    </>
+  );
+}

@@ -8,8 +8,13 @@ export interface MechanicWithDistance {
   email: string;
   phoneNumber: string;
   services: ServiceType[];
-  latitude: number;
-  longitude: number;
+  address: {
+    lat: number;
+    lng: number;
+    address?: string;
+    city?: string;
+    pincode?: string;
+  };
   location: any;
   expoToken?: string;
   distance: number;
@@ -55,8 +60,13 @@ export class MechanicDiscoveryService {
         email: m.email,
         phoneNumber: m.phoneNumber,
         services: m.services,
-        latitude: m.latitude,
-        longitude: m.longitude,
+        address: {
+          lat: m.address?.lat,
+          lng: m.address?.lng,
+          address: m.address?.address,
+          city: m.address?.city,
+          pincode: m.address?.pincode,
+        },
         location: m.location,
         expoToken: m.expoToken,
         distance: m.distance,
@@ -68,16 +78,20 @@ export class MechanicDiscoveryService {
     mechanicId: string,
     latitude: number,
     longitude: number,
+    address?: string,
+    city?: string,
+    pincode?: string,
   ) {
     return this.prisma.mechanic.update({
       where: { id: mechanicId },
       data: {
-        latitude,
-        longitude,
-        location: {
-          type: 'Point',
-          coordinates: [longitude, latitude],
-        },
+        address: {
+          lat: latitude,
+          lng: longitude,
+          address,
+          city,
+          pincode,
+        }
       },
     });
   }

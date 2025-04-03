@@ -1,49 +1,76 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Redirect, router } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import LottieView from 'lottie-react-native';
-import tailwind from 'twrnc';
 
 import CustomSafeAreaView from '@/src/components/ui/custom-safeareaview';
 import { useAppInitialization } from '@/src/hooks/useAppInitialisation';
-import { useAuthStore } from '@/src/state/authStorage';
-
+import { useAuthStore } from '@/src/state/useAuth';
+import { secureStore } from '@/src/secure-store';
+import { AUTH_TOKEN_KEY } from '@/src/constants/secureStoreKeys';
 
 const Index = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasToken, setHasToken] = useState<boolean | null>(null);
+
+  // Initialize the app
   useAppInitialization();
-  const { user, isAuthenticated, isLoading, refreshUser } = useAuthStore();
 
-  const refresh = async () => {
-    if (user?.id) {
-      await refreshUser(user.id);
-      router.replace('/(app)');
-    }
-  };
+  // Get mechanic data from auth store
+  const { mechanic, isAuthenticated, refreshMechanic } = useAuthStore();
 
+  // Check if token exists in secure storage
   useEffect(() => {
-    if (isAuthenticated && user) {
+    const checkToken = async () => {
+      try {
+        const token = await secureStore?.getItem(AUTH_TOKEN_KEY);
+        setHasToken(!!token);
+      } catch (error) {
+        console.error('Error checking token:', error);
+        setHasToken(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkToken();
+  }, []);
+
+  // Refresh mechanic data if authenticated
+  useEffect(() => {
+    const refresh = async () => {
+      if (isAuthenticated && mechanic?.id) {
+        await refreshMechanic();
+        router.replace('/(app)');
+      }
+    };
+
+    if (!isLoading && hasToken && isAuthenticated) {
       refresh();
     }
-  }, [isAuthenticated, user]);
+  }, [isLoading, hasToken, isAuthenticated, mechanic]);
 
-  if (!isAuthenticated) {
-    return <Redirect href="/(auth)/sign-in" />;
+  // Show loading state
+  if (isLoading) {
+    return (
+      <SafeAreaProvider>
+        <CustomSafeAreaView className="flex-1 bg-white items-center justify-center">
+          <LottieView
+            autoPlay
+            style={{ width: 32, height: 32 }}
+            loop={true}
+            source={require("@/assets/lottie/loader-circle.json")}
+          />
+        </CustomSafeAreaView>
+      </SafeAreaProvider>
+    );
   }
 
-  return (
-    <SafeAreaProvider>
-      <CustomSafeAreaView 
-        style={tailwind`flex-1 bg-white items-center justify-center`}
-      >
-        <LottieView
-          autoPlay
-          style={tailwind`w-8 h-8`}
-          loop={true}
-          source={require('@/assets/lottie/loader-circle.json')}
-        />
-      </CustomSafeAreaView>
-    </SafeAreaProvider>
-  );
+  if (!hasToken) {
+    return <Redirect href="/(auth)/welcome" />;
+  }
+
+  return <Redirect href="/(app)" />;
 };
 
 export default Index;

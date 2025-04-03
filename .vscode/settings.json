@@ -3,6 +3,8 @@
         "autoincrement",
         "dsphere",
         "Geospatial",
-        "Initialisation"
+        "Indecator",
+        "Initialisation",
+        "pincode"
     ]
 }

@@ -6,7 +6,7 @@ import { router } from "expo-router";
 const Welcome = () => {
   return (
     <SafeAreaView className="flex h-full bg-white">
-     
+
       <View className="items-center p-5">
         <Image
           source={require("@/assets/images/onboard.jpg")}
@@ -14,7 +14,7 @@ const Welcome = () => {
           resizeMode="contain"
         />
         <Text className="text-black text-3xl font-bold text-center mt-10">
-          Welcome to Quick Aid
+          Now you are  login and now do any thing you want
         </Text>
       </View>
 
