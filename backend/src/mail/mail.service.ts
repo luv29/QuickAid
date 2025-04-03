@@ -17,7 +17,17 @@ export class MailService {
     });
   }
 
-  async sendMail({ to, subject, text, html }: { to: string; subject: string; text: string; html?: string }) {
+  async sendMail({
+    to,
+    subject,
+    text,
+    html,
+  }: {
+    to: string;
+    subject: string;
+    text: string;
+    html?: string;
+  }) {
     try {
       const info = await this.transporter.sendMail({
         from: `"SOS Alert" <${process.env.SMTP_FROM}>`,

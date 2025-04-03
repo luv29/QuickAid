@@ -4,11 +4,10 @@ import { SosController } from './sos.controller';
 import { DatabaseModule } from 'src/database/database.module';
 import { MailService } from 'src/mail/mail.service';
 
-
 @Module({
   imports: [DatabaseModule],
   providers: [SosService, MailService],
   exports: [SosService],
-  controllers: [SosController]
+  controllers: [SosController],
 })
 export class SosModule {}

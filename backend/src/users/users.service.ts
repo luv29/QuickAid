@@ -53,21 +53,21 @@ export class UsersService {
     select?: Prisma.UserSelect,
   ) {
     const queryOptions: Prisma.UserFindUniqueArgs = { where: { id } };
-    
+
     if (include) {
       queryOptions.include = include;
     }
     if (select) {
       queryOptions.select = select;
     }
-    
+
     return this.db.user.findUnique(queryOptions);
   }
 
   async update(id: string, data: Prisma.UserUpdateInput) {
-    return await this.db.user.update({ 
-      where: { id }, 
-      data 
+    return await this.db.user.update({
+      where: { id },
+      data,
     });
   }
 
