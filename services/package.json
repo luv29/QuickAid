@@ -1,6 +1,6 @@
 {
   "name": "@quick-aid/core",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "type": "module",
   "description": "Combined package for Quick Aid services and types",
   "main": "./dist/index.js",
