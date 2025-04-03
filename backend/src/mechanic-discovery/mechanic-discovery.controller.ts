@@ -14,7 +14,7 @@ import {
     async findNearbyMechanics(
       @Query('latitude') latitude: number,
       @Query('longitude') longitude: number,
-      @Query('serviceType') serviceType: ServiceType,
+      @Query('serviceType') serviceType?: ServiceType,
       @Query('maxDistance') maxDistance?: string,
       @Query('limit') limit?: string,
     ) {

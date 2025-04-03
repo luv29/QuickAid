@@ -7,6 +7,20 @@ import { AUTH_TOKEN_KEY } from "@/src/constants/secureStoreKeys";
 import { Mechanic, Prisma } from "@quick-aid/core";
 import { authService, mechanicService } from "@/src/service";
 
+const isRegistrationComplete = (mechanic: Mechanic): boolean => {
+  return Boolean(
+    mechanic &&
+    mechanic.name &&
+    mechanic.phoneNumber &&
+    mechanic.isPhoneNumberVerified === true &&
+    mechanic.address &&
+    mechanic.location &&
+    mechanic.services &&
+    mechanic.services.length > 0 &&
+    mechanic.BankDetails
+  );
+};
+
 const Index = () => {
   const { setMechanic, setAuthenticated } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
@@ -22,9 +36,6 @@ const Index = () => {
           return;
         }
 
-        setAuthenticated(true);
-
-
         // Validate token
         const decoded = await authService.verifyToken(token);
         if (!decoded || !decoded.data?.phoneNumber) {
@@ -34,39 +45,39 @@ const Index = () => {
 
         const phoneNumber = decoded.data.phoneNumber.slice(-10);
 
-        // Try to fetch existing store
+        // Try to fetch existing mechanic
         const { data } = await mechanicService.findMany({
           where: {
             phoneNumber
           },
         });
 
-        const Mechanic: Mechanic = data.data[0];
+        const mechanic: Mechanic = data.data[0];
 
-        if (Mechanic) {
-          setMechanic(Mechanic);
-          if (Mechanic.approved !== true) {
-            router.push("/(app)/(onboarding)/verify-details");
-            return;
+        if (mechanic) {
+          setMechanic(mechanic);
+          setAuthenticated(true);
+
+          // Check if mechanic has all required fields
+          if (isRegistrationComplete(mechanic)) {
+            // Mechanic has completed registration
+            if (mechanic.approved === true) {
+              router.push("/(app)/(tabs)");
+            } else {
+              router.push("/(app)/(verify-store)");
+            }
+          } else {
+            // Mechanic has incomplete registration, send to registration flow
+            router.push("/(app)/(onboarding)/registration");
           }
-          // main path per move karwa dena hai 
-          router.push("/(app)/(tabs)");
           return;
         }
 
-        // Try to fetch existing onboarding store
-        const existingMechanic = await mechanicService.findMany({
-          where: { phoneNumber }
-        });
-
-        if (existingMechanic) {
-          setMechanic(existingMechanic.data.data[0]);
-          router.push("/(app)/(onboarding)/registration");
-          return;
-        }
+        // No existing mechanic found, create new onboarding record
+        router.push("/(app)/(onboarding)/registration");
 
       } catch (error) {
-        console.error("Error handling store fetch:", error);
+        console.error("Error handling mechanic fetch:", error);
         router.push("/sign-in");
       } finally {
         setIsLoading(false);

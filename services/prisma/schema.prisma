@@ -102,15 +102,21 @@ type BankDetails {
   ifscCode          String
 }
 
+type GeoJson {
+  type        String
+  coordinates Float[]
+}
+
 model Mechanic {
   id                      String                 @id @default(auto()) @map("_id") @db.ObjectId
   name                    String?
-  email                   String?                
+  email                   String?
   phoneNumber             String                 @unique
   approved                Boolean                @default(false)
   isPhoneNumberVerified   Boolean                @default(false)
   alternatePhoneNumber    String?
   address                 Address?
+  location                GeoJson?
   createdAt               DateTime               @default(now())
   updatedAt               DateTime               @updatedAt
   minCommissionPercentage Float?

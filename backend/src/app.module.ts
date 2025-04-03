@@ -17,6 +17,7 @@ import { MailModule } from './mail/mail.module';
 import { MechanicModule } from './mechanic/mechanic.module';
 import { PaymentModule } from './payment/payment.module';
 import { ReviewsModule } from './reviews/reviews.module';
+import { ChatGateway } from './chat/chat.gateway';
 
 @Module({
   imports: [
@@ -38,6 +39,6 @@ import { ReviewsModule } from './reviews/reviews.module';
   ],
 
   controllers: [AppController],
-  providers: [AppService, MailService],
+  providers: [AppService, MailService, ChatGateway],
 })
 export class AppModule {}

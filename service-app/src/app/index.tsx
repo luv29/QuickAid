@@ -15,9 +15,8 @@ const Index = () => {
 
   // Initialize the app
   useAppInitialization();
-
   // Get mechanic data from auth store
-  const { mechanic, isAuthenticated, refreshMechanic } = useAuthStore();
+  const { mechanic, isAuthenticated, refreshMechanic, resetState } = useAuthStore();
 
   // Check if token exists in secure storage
   useEffect(() => {

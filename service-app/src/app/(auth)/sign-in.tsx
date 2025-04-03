@@ -99,15 +99,15 @@ export default function SignIn() {
         return;
       }
 
-      await setAuthenticated(true);
-
       let mechanic = await mechanicService.findMany({
         where: {
           phoneNumber: phoneNumber
         }
       })
 
-      if (!mechanic.data[0]) {
+      console.log(mechanic.data?.data[0])
+
+      if (!mechanic.data?.data[0]) {
         mechanic = await mechanicService.create({
           phoneNumber: phoneNumber,
           isPhoneNumberVerified: true

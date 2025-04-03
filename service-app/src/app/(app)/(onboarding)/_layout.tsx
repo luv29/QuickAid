@@ -29,7 +29,7 @@ export const ONBOARDING_STEPS = {
   }
 };
 
-export const TOTAL_ONBOARDING_STEPS = 6;
+export const TOTAL_ONBOARDING_STEPS = 4;
 
 const MechanicOnboardingLayout = () => {
   const router = useRouter();
