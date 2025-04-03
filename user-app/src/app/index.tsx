@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Redirect, router } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import LottieView from 'lottie-react-native';
-
+import "../../global.css";
 import CustomSafeAreaView from '@/src/components/ui/custom-safeareaview';
 import { useAppInitialization } from '@/src/hooks/useAppInitialisation';
 import { useAuthStore } from '@/src/state/useAuth';
@@ -40,7 +40,7 @@ const Index = () => {
     const refresh = async () => {
       if (isAuthenticated && user?.id) {
         await refreshUser();
-        router.replace('/(app)');
+        router.replace('/(root)/(tabs)/home');
       }
     };
 
@@ -69,7 +69,7 @@ const Index = () => {
     return <Redirect href="/(auth)/welcome" />;
   }
 
-  return <Redirect href="/(app)" />;
+  return <Redirect href="/(root)/(tabs)/home" />;
 };
 
 export default Index;

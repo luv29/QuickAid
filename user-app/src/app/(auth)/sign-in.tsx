@@ -115,7 +115,7 @@ export default function SignIn() {
 
       const { data } = await authService.createToken(`+91${phoneNumber}`, AuthorizerType.MECHANIC);
       await secureStore?.setItem(AUTH_TOKEN_KEY, data.token);
-      router.push("/(app)");
+      router.push("/(root)/(tabs)/home");
     } catch (error) {
       setError("Verification failed. Please try again.");
       console.error(error);
@@ -223,7 +223,7 @@ export default function SignIn() {
       <View className="items-center mb-12 gap-2">
         <Pressable onPress={() => router.back()}>
           <Image
-            source={require("@/assets/images/logo/logo.jpeg")}
+            source={require("@/assets/images/QwikAidLogo.jpeg")}
             className="w-60 h-60"
             resizeMode="contain"
           />

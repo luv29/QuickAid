@@ -9,7 +9,7 @@ const Welcome = () => {
      
       <View className="items-center p-5">
         <Image
-          source={require("@/assets/images/onboard.jpg")}
+          source={require("@/assets/images/onboard2.jpg")}
           className="w-full h-[300px]"
           resizeMode="contain"
         />
