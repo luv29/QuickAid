@@ -1,95 +1,197 @@
-import Loader from "@/src/components/ui/loader";
-import { useAuthStore } from "@/src/state/useAuth";
-import { Redirect, router } from "expo-router";
-import { useEffect, useState } from "react";
-import { secureStore } from "@/src/secure-store";
-import { AUTH_TOKEN_KEY } from "@/src/constants/secureStoreKeys";
-import { Mechanic, Prisma } from "@quick-aid/core";
-import { authService, mechanicService } from "@/src/service";
+import { create } from "zustand";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
+import { Car, EmergencyContact, ServiceRequest, SOS } from "@quick-aid/core";
+import {
+  AUTH_TOKEN_KEY,
+} from "@/src/constants/secureStoreKeys";
+import { userService } from "@/src/service";
 
-const Index = () => {
-  const { setMechanic, setAuthenticated } = useAuthStore();
-  const [isLoading, setIsLoading] = useState(true);
+// Updated User interface to handle nullable fields
+interface User {
+  id: string;
+  phoneNumber: string;
+  name: string | null | undefined;
+  email: string | null | undefined;
+  password: string | null | undefined;
+  cars?: Car[];
+  serviceRequests?: ServiceRequest[];
+  emergencyContacts?: EmergencyContact[];
+  sosEvents?: SOS[];
+}
 
-  useEffect(() => {
-    const fetchAndHandleMechanic = async () => {
-      try {
-        // Fetch token from secure storage
-        const token = await secureStore?.getItem(AUTH_TOKEN_KEY);
+interface UserState {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
 
-        if (!token) {
-          router.push("/sign-in");
-          return;
-        }
+  setUser: (user: User) => void;
+  updateUser: (userData: Partial<User>) => void;
+  updateCars: (cars: Car[]) => void;
+  addCar: (car: Car) => void;
+  removeCar: (carId: string) => void;
+  updateEmergencyContacts: (contacts: EmergencyContact[]) => void;
+  addEmergencyContact: (contact: EmergencyContact) => void;
+  removeEmergencyContact: (contactId: string) => void;
+  setToken: (token: string | null) => Promise<void>;
+  setAuthenticated: (value: boolean) => void;
+  setLoading: (value: boolean) => void;
+  getUser: () => User | null;
+  refreshUser: () => Promise<void>;
+  resetState: () => Promise<void>;
+}
 
-        setAuthenticated(true);
+export const useUserAuthStore = create<UserState>((set, get) => ({
+  user: null,
+  token: null,
+  isAuthenticated: false,
+  isLoading: false,
+
+  getUser: () => get().user,
+
+  setUser: (user) => set({ user }),
+
+  updateUser: (userData) => {
+    const { user } = get();
+
+    if (!user) return;
+
+    set({
+      user: {
+        ...user,
+        ...userData,
+      },
+    });
+  },
+
+  updateCars: (cars) => {
+    const { user } = get();
+
+    if (!user) return;
+
+    set({
+      user: {
+        ...user,
+        cars,
+      },
+    });
+  },
+
+  addCar: (car) => {
+    const { user } = get();
+
+    if (!user) return;
+
+    const currentCars = user.cars || [];
+    
+    set({
+      user: {
+        ...user,
+        cars: [...currentCars, car],
+      },
+    });
+  },
+
+  removeCar: (carId) => {
+    const { user } = get();
+
+    if (!user || !user.cars) return;
+
+    set({
+      user: {
+        ...user,
+        cars: user.cars.filter((car) => car.id !== carId),
+      },
+    });
+  },
+
+  updateEmergencyContacts: (emergencyContacts) => {
+    const { user } = get();
+
+    if (!user) return;
+
+    set({
+      user: {
+        ...user,
+        emergencyContacts,
+      },
+    });
+  },
+
+  addEmergencyContact: (contact) => {
+    const { user } = get();
+
+    if (!user) return;
+
+    const currentContacts = user.emergencyContacts || [];
+    
+    set({
+      user: {
+        ...user,
+        emergencyContacts: [...currentContacts, contact],
+      },
+    });
+  },
+
+  removeEmergencyContact: (contactId) => {
+    const { user } = get();
+
+    if (!user || !user.emergencyContacts) return;
+
+    set({
+      user: {
+        ...user,
+        emergencyContacts: user.emergencyContacts.filter(
+          (contact) => contact.id !== contactId
+        ),
+      },
+    });
+  },
 
 
-        // Validate token
-        const decoded = await authService.verifyToken(token);
-        if (!decoded || !decoded.data?.phoneNumber) {
-          router.push("/sign-in");
-          return;
-        }
 
-        const phoneNumber = decoded.data.phoneNumber.slice(-10);
+  setToken: async (token) => {
+    // Store token in SecureStore
+    if (token) {
+      await SecureStore.setItemAsync(AUTH_TOKEN_KEY, token);
+    } else {
+      await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
+    }
+    set({ token });
+  },
 
-        // Try to fetch existing store
-        const { data } = await mechanicService.findMany({
-          where: {
-            phoneNumber
-          },
-        });
+  setAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
 
-        const Mechanic: Mechanic = data.data[0];
+  setLoading: (isLoading) => set({ isLoading }),
 
-        if (Mechanic) {
-          setMechanic(Mechanic);
-          if (Mechanic.approved !== true) {
-            router.push("/(app)/(onboarding)/verify-details");
-            return;
-          }
-          // main path per move karwa dena hai 
-          router.push("/(app)/(tabs)");
-          return;
-        }
+  refreshUser: async () => {
+    const { user, setUser, setLoading } = get();
 
-        // Try to fetch existing onboarding store
-        const existingMechanic = await mechanicService.findMany({
-          where: { phoneNumber }
-        });
+    if (!user?.id) return;
 
-        if (existingMechanic) {
-          setMechanic(existingMechanic.data.data[0]);
-          router.push("/(app)/(onboarding)/registration");
-          return;
-        }
-
-      } catch (error) {
-        console.error("Error handling store fetch:", error);
-        router.push("/sign-in");
-      } finally {
-        setIsLoading(false);
+    setLoading(true);
+    try {
+      const refreshedUser = await userService.findOne(user.id);
+      if (refreshedUser.data) {
+        setUser(refreshedUser.data);
       }
-    };
+    } catch (error) {
+      console.error("Failed to refresh user data:", error);
+    } finally {
+      setLoading(false);
+    }
+  },
 
-    fetchAndHandleMechanic();
-  }, []);
-
-  // Render a loader or redirect to sign-in if loading is complete but no token is present
-  if (isLoading) {
-    return (
-      <Loader
-        style={{
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      />
-    );
-  }
-
-  return <Redirect href="/sign-in" />;
-};
-
-export default Index;
+  resetState: async () => {
+    // Clear token from SecureStore
+    await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
+    // Clear user data from AsyncStorage
+    set({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      isLoading: false,
+    });
+  },
+}));

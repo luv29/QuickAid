@@ -16,8 +16,7 @@ const Index = () => {
   // Initialize the app
   useAppInitialization();
   // Get mechanic data from auth store
-  const { mechanic, isAuthenticated, refreshMechanic, resetState } = useAuthStore();
-
+  const { user, isAuthenticated, refreshUser, resetState } = useAuthStore();
 
   // Check if token exists in secure storage
   useEffect(() => {
@@ -39,8 +38,8 @@ const Index = () => {
   // Refresh mechanic data if authenticated
   useEffect(() => {
     const refresh = async () => {
-      if (isAuthenticated && mechanic?.id) {
-        await refreshMechanic();
+      if (isAuthenticated && user?.id) {
+        await refreshUser();
         router.replace('/(app)');
       }
     };
@@ -48,7 +47,7 @@ const Index = () => {
     if (!isLoading && hasToken && isAuthenticated) {
       refresh();
     }
-  }, [isLoading, hasToken, isAuthenticated, mechanic]);
+  }, [isLoading, hasToken, isAuthenticated, user]);
 
   // Show loading state
   if (isLoading) {

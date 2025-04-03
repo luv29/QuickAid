@@ -8,11 +8,11 @@ const Welcome = () => {
     <SafeAreaView className="flex h-full bg-white">
 
       <View className="items-center p-5">
-        <Image
+        {/* <Image
           source={require("@/assets/images/onboard.jpg")}
           className="w-full h-[300px]"
           resizeMode="contain"
-        />
+        /> */}
         <Text className="text-black text-3xl font-bold text-center mt-10">
           Now you are  login and now do any thing you want
         </Text>

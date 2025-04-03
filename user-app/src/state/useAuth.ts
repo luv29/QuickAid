@@ -1,101 +1,111 @@
 import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
-import { ServiceType, Mechanic, Address, BankDetails } from "@quick-aid/core";
+import { Car, EmergencyContact, ServiceRequest, SOS } from "@quick-aid/core";
 import {
   AUTH_TOKEN_KEY,
-  MECHANIC_STORAGE,
 } from "@/src/constants/secureStoreKeys";
-import { mechanicService } from "@/src/service";
+import { userService } from "@/src/service";
 
-interface MechanicState {
-  mechanic: Mechanic | null;
+interface User {
+  id: string;
+  phoneNumber: string;
+  name?: string;
+  email?: string;
+  cars?: Car[];
+  serviceRequests?: ServiceRequest[];
+  emergencyContacts?: EmergencyContact[];
+  sosEvents?: SOS[];
+}
+
+interface UserState {
+  user: User | null;
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
 
-  setMechanic: (mechanic: Mechanic) => void;
-  updateMechanic: (mechanicData: Partial<Mechanic>) => void;
-  updateAddress: (address: Partial<Address>) => void;
-  updateServices: (services: ServiceType[]) => void;
-  updateExpoToken: (token: string) => void;
+  setUser: (user: User) => void;
+  updateUser: (userData: Partial<User>) => void;
+
+  updateEmergencyContacts: (contacts: EmergencyContact[]) => void;
+  addEmergencyContact: (contact: EmergencyContact) => void;
+  removeEmergencyContact: (contactId: string) => void;
   setToken: (token: string | null) => Promise<void>;
   setAuthenticated: (value: boolean) => void;
   setLoading: (value: boolean) => void;
-  getMechanic: () => Mechanic | null;
-  refreshMechanic: () => Promise<void>;
+  getUser: () => User | null;
+  refreshUser: () => Promise<void>;
   resetState: () => Promise<void>;
 }
 
-export const useAuthStore = create<MechanicState>((set, get) => ({
-  mechanic: null,
+export const useAuthStore = create<UserState>((set, get) => ({
+  user: null,
   token: null,
   isAuthenticated: false,
   isLoading: false,
 
-  getMechanic: () => get().mechanic,
+  getUser: () => get().user,
 
-  setMechanic: (mechanic) => set({ mechanic }),
+  setUser: (user) => set({ user }),
 
-  updateMechanic: (mechanicData) => {
-    const { mechanic } = get();
+  updateUser: (userData) => {
+    const { user } = get();
 
-    if (!mechanic) return;
+    if (!user) return;
 
     set({
-      mechanic: {
-        ...mechanic,
-        ...mechanicData,
+      user: {
+        ...user,
+        ...userData,
       },
     });
   },
 
-  updateAddress: (address) => {
-    const { mechanic } = get();
 
-    if (!mechanic) return;
+ 
+
+  updateEmergencyContacts: (emergencyContacts) => {
+    const { user } = get();
+
+    if (!user) return;
 
     set({
-      mechanic: {
-        ...mechanic,
-        address: {
-          address: null,
-          city: null,
-          pincode: null,
-          lat: null,
-          lng: null,
-          ...(mechanic.address || {}),
-          ...address,
-        },
+      user: {
+        ...user,
+        emergencyContacts,
       },
     });
   },
 
-  updateServices: (services) => {
-    const { mechanic } = get();
+  addEmergencyContact: (contact) => {
+    const { user } = get();
 
-    if (!mechanic) return;
+    if (!user) return;
 
     set({
-      mechanic: {
-        ...mechanic,
-        services,
+      user: {
+        ...user,
+        emergencyContacts: [...(user.emergencyContacts || []), contact],
       },
     });
   },
 
-  updateExpoToken: (expoToken) => {
-    const { mechanic } = get();
+  removeEmergencyContact: (contactId) => {
+    const { user } = get();
 
-    if (!mechanic) return;
+    if (!user) return;
 
     set({
-      mechanic: {
-        ...mechanic,
-        expoToken,
+      user: {
+        ...user,
+        emergencyContacts: (user.emergencyContacts || []).filter(
+          (contact) => contact.id !== contactId
+        ),
       },
     });
   },
+
+  
 
   setToken: async (token) => {
     // Store token in SecureStore
@@ -111,19 +121,19 @@ export const useAuthStore = create<MechanicState>((set, get) => ({
 
   setLoading: (isLoading) => set({ isLoading }),
 
-  refreshMechanic: async () => {
-    const { mechanic, setMechanic, setLoading } = get();
+  refreshUser: async () => {
+    const { user, setUser, setLoading } = get();
 
-    if (!mechanic?.id) return;
+    if (!user?.id) return;
 
     setLoading(true);
     try {
-      const refreshedMechanic = await mechanicService.findOne(mechanic.id);
-      if (refreshedMechanic.data) {
-        setMechanic(refreshedMechanic.data);
+      const refreshedUser = await userService.findOne(user.id);
+      if (refreshedUser.data) {
+        setUser(refreshedUser.data);
       }
     } catch (error) {
-      console.error("Failed to refresh mechanic data:", error);
+      console.error("Failed to refresh user data:", error);
     } finally {
       setLoading(false);
     }
@@ -132,11 +142,8 @@ export const useAuthStore = create<MechanicState>((set, get) => ({
   resetState: async () => {
     // Clear token from SecureStore
     await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
-    // Clear mechanic data from AsyncStorage
-    await AsyncStorage.removeItem(MECHANIC_STORAGE);
-
     set({
-      mechanic: null,
+      user: null,
       token: null,
       isAuthenticated: false,
       isLoading: false,

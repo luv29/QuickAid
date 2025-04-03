@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "expo-app@latest",
-    "slug": "expo-app@latest",
+    "name": "user-app",
+    "slug": "user-app-quick-aid",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "userapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -15,14 +15,14 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.abhey-gupta.expoapplatest"
+      "bundleIdentifier": "com.jayesh-savaliya.userapplatest"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.abhey_gupta.expoapplatest",
+      "package": "com.jayesh_savaliya.userapplatest",
       "permissions": [
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",

@@ -18,7 +18,7 @@ import {
   useClearByFocusCell,
 } from "react-native-confirmation-code-field";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { messagesService, mechanicService, authService } from "@/src/service";
+import { messagesService, userService, authService } from "@/src/service";
 import { secureStore } from "@/src/secure-store";
 import { AUTH_TOKEN_KEY } from "@/src/constants/secureStoreKeys";
 import ScreenHeader from "@/src/components/ui/screen-header";
@@ -99,18 +99,17 @@ export default function SignIn() {
         return;
       }
 
-      await setAuthenticated(true);
-
-      let mechanic = await mechanicService.findMany({
+      let mechanic = await userService.findMany({
         where: {
           phoneNumber: phoneNumber
         }
       })
 
-      if (!mechanic.data[0]) {
-        mechanic = await mechanicService.create({
+      console.log(mechanic.data?.data[0])
+
+      if (!mechanic.data?.data[0]) {
+        mechanic = await userService.create({
           phoneNumber: phoneNumber,
-          isPhoneNumberVerified: true
         });
       }
 

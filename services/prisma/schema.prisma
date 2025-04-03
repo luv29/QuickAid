@@ -52,16 +52,17 @@ enum ServiceStatus {
 }
 
 model User {
-  id                String             @id @default(auto()) @map("_id") @db.ObjectId
-  phoneNumber       String             @unique
-  name              String?
-  email             String?
-  password          String?
-  cars              Car[]
-  serviceRequests   ServiceRequest[]   @relation("UserServiceRequests")
-  emergencyContacts EmergencyContact[]
-  sentMessages      Message[]          @relation("UserMessages")
-  sosEvents         SOS[]
+  id                    String             @id @default(auto()) @map("_id") @db.ObjectId
+  phoneNumber           String             @unique
+  isPhoneNumberVerified Boolean            @default(false)
+  name                  String?
+  email                 String?
+  password              String?
+  cars                  Car[]
+  serviceRequests       ServiceRequest[]   @relation("UserServiceRequests")
+  emergencyContacts     EmergencyContact[]
+  sentMessages          Message[]          @relation("UserMessages")
+  sosEvents             SOS[]
 }
 
 model MechanicConfirmation {
@@ -127,6 +128,8 @@ model Mechanic {
   serviceRequests         ServiceRequest[]       @relation("MechanicServiceRequests")
   reviews                 Review[]               @relation("MechanicReviews")
   MechanicConfirmation    MechanicConfirmation[]
+
+  @@index([location])
 }
 
 model Car {
