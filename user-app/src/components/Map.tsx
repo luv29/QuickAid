@@ -1,25 +1,44 @@
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Text, Alert } from "react-native";
 import * as Location from "expo-location";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import { GOOGLE_MAPS_API_KEY } from '@env';
+import Constants from 'expo-constants';
 
-const Map = () => {
+// TypeScript interfaces
+interface Mechanic {
+  id: number;
+  name: string;
+  latitude: number;
+  longitude: number;
+}
+
+interface UserLocation {
+  latitude: number;
+  longitude: number;
+}
+
+const Map: React.FC = () => {
   // Use component state instead of store to ensure data is available
-  const [userLocation, setUserLocation] = useState(null);
-  const [nearbyMechanics, setNearbyMechanics] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+  const [nearbyMechanics, setNearbyMechanics] = useState<Mechanic[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Get Google Maps API key from environment variables
+  const googleMapsApiKey = GOOGLE_MAPS_API_KEY || Constants.expoConfig?.extra?.googleMapsApiKey || '';
+
   useEffect(() => {
     let isMounted = true;
-    
-    const getLocationData = async () => {
+
+    const getLocationData = async (): Promise<void> => {
       console.log("Starting location fetch process...");
       setIsLoading(true);
-      
+
       try {
         // Request permissions
         let { status } = await Location.requestForegroundPermissionsAsync();
         console.log("Permission status:", status);
-        
+
         if (status !== "granted") {
           Alert.alert(
             "Permission Denied",
@@ -28,22 +47,22 @@ const Map = () => {
           setIsLoading(false);
           return;
         }
-        
+
         // Get current location
         console.log("Getting current position...");
         const location = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced
         });
-        
+
         console.log("Location obtained:", location.coords);
-        
+
         if (isMounted) {
           // Set user location directly in component state
           setUserLocation({
             latitude: location.coords.latitude,
             longitude: location.coords.longitude,
           });
-          
+
           // Generate nearby mechanics
           generateNearbyMechanics(location.coords.latitude, location.coords.longitude);
           setIsLoading(false);
@@ -55,9 +74,9 @@ const Map = () => {
         }
       }
     };
-    
+
     getLocationData();
-    
+
     // Cleanup function
     return () => {
       isMounted = false;
@@ -65,20 +84,20 @@ const Map = () => {
   }, []);
 
   // Function to generate random nearby mechanics
-  const generateNearbyMechanics = (latitude, longitude) => {
+  const generateNearbyMechanics = (latitude: number, longitude: number): void => {
     if (!latitude || !longitude) {
       console.log("No coordinates for mechanics");
       return;
     }
-    
-    const mechanics = [];
-    
+
+    const mechanics: Mechanic[] = [];
+
     // Generate 4 random mechanics in the vicinity
     for (let i = 0; i < 4; i++) {
       // Generate random offsets (approximately within 3 km)
       const latOffset = (Math.random() - 0.5) * 0.06;
       const longOffset = (Math.random() - 0.5) * 0.06;
-      
+
       mechanics.push({
         id: i + 1,
         name: `Mechanic ${i + 1}`,
@@ -86,7 +105,7 @@ const Map = () => {
         longitude: longitude + longOffset,
       });
     }
-    
+
     console.log("Generated mechanics:", mechanics);
     setNearbyMechanics(mechanics);
   };
@@ -115,15 +134,23 @@ const Map = () => {
     <View style={styles.container}>
       <MapView
         style={styles.map}
+        provider={PROVIDER_GOOGLE}
         initialRegion={{
           latitude: userLocation.latitude,
           longitude: userLocation.longitude,
           latitudeDelta: 0.02,
           longitudeDelta: 0.02,
         }}
-        mapType="mutedStandard"
-        tintColor="black"
-        userInterfaceStyle="light"
+        customMapStyle={[
+          {
+            "elementType": "geometry",
+            "stylers": [{ "color": "#f5f5f5" }]
+          },
+          {
+            "elementType": "labels.text.fill",
+            "stylers": [{ "color": "#616161" }]
+          }
+        ]}
       >
         {/* User marker */}
         <Marker
