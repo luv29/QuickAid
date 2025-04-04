@@ -1,16 +1,16 @@
-// app/offline.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Image, ScrollView, FlatList, Linking, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { icons } from '@/src/constants';
 import { useLocationStore } from '@/src/store';
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useNetworkStatus } from '@/src/hooks/useNetworkinfostatus';
 
 const dummyMechanics = [
   {
     id: '1',
     name: 'John Smith',
-    photo: require('@/assets/images/Engine.jpg'), 
+    photo: require('@/assets/images/Engine.jpg'),
     rating: 4.8,
     distance: 1.2,
     phone: '+1234567890'
@@ -26,7 +26,7 @@ const dummyMechanics = [
   {
     id: '3',
     name: 'Sarah Williams',
-    photo: require('@/assets/images/fuel.jpg'), 
+    photo: require('@/assets/images/fuel.jpg'),
     rating: 4.9,
     distance: 3.1,
     phone: '+1234567892'
@@ -34,7 +34,7 @@ const dummyMechanics = [
   {
     id: '4',
     name: 'David Brown',
-    photo: require('@/assets/images/idk1.jpg'), 
+    photo: require('@/assets/images/idk1.jpg'),
     rating: 4.7,
     distance: 3.8,
     phone: '+1234567893'
@@ -42,15 +42,21 @@ const dummyMechanics = [
   {
     id: '5',
     name: 'Lisa Chen',
-    photo: require('@/assets/images/idk2.jpg'), 
+    photo: require('@/assets/images/idk2.jpg'),
     rating: 4.5,
     distance: 4.2,
     phone: '+1234567894'
   }
 ];
 
+interface EmergencyContact {
+  id: string;
+  name: string;
+  phone: string;
+}
+
 // Dummy data for emergency contacts
-const emergencyContacts = [
+const emergencyContacts: EmergencyContact[] = [
   { id: '1', name: 'Roadside Assistance', phone: '+18001234567' },
   { id: '2', name: 'Police', phone: '911' },
   { id: '3', name: 'Towing Service', phone: '+18009876543' },
@@ -58,7 +64,15 @@ const emergencyContacts = [
   { id: '5', name: 'Car Rental', phone: '+18005544332' },
 ];
 
-const troubleshootingGuides = [
+interface TroubleshootingGuide {
+  id: string;
+  title: string;
+  description: string;
+  image: any;
+  htmlContent: string;
+}
+
+const troubleshootingGuides: TroubleshootingGuide[] = [
   {
     id: '1',
     title: 'How to Fix a Flat Tire',
@@ -97,28 +111,45 @@ const troubleshootingGuides = [
 ];
 
 const OfflinePage = () => {
-  const [isOnline, setIsOnline] = useState(false);
-  const [selectedGuide, setSelectedGuide] = useState(null);
-  const { userAddress } = useLocationStore();
+  // Use the network context instead of local state
+  const { isConnected, setNetworkStatus } = useNetworkStatus();
+  const [selectedGuide, setSelectedGuide] = useState<TroubleshootingGuide | null>(null);
+  const { userLocation } = useLocationStore();
+
+  // Set local display state based on the global network state
+  const [isOnline, setIsOnline] = useState(isConnected);
+
+  // Update local state whenever network status changes
+  useEffect(() => {
+    setIsOnline(isConnected);
+  }, [isConnected]);
 
   const toggleOnlineStatus = () => {
     const newStatus = !isOnline;
     setIsOnline(newStatus);
-    
+    setNetworkStatus(newStatus); // Update the global network status
+
     if (newStatus) {
       // Navigate back to home tab when toggled to online
       router.replace('/(root)/(tabs)/home');
     }
   };
 
-  const handleCall = (phoneNumber: any) => {
+  // Check if network status changes externally
+  useEffect(() => {
+    if (isConnected) {
+      router.replace('/(root)/(tabs)/home');
+    }
+  }, [isConnected]);
+
+  const handleCall = (phoneNumber: string) => {
     let formattedNumber = phoneNumber;
     if (Platform.OS === 'android') {
       formattedNumber = `tel:${phoneNumber}`;
     } else {
       formattedNumber = `telprompt:${phoneNumber}`;
     }
-    
+
     Linking.canOpenURL(formattedNumber)
       .then(supported => {
         if (supported) {
@@ -130,12 +161,21 @@ const OfflinePage = () => {
       .catch(err => console.error('An error occurred', err));
   };
 
-  const renderMechanicCard = ({ item }) => (
+  interface Mechanic {
+    id: string;
+    name: string;
+    photo: any;
+    rating: number;
+    distance: number;
+    phone: string;
+  }
+
+  const renderMechanicCard = ({ item }: { item: Mechanic }) => (
     <View className="w-64 mr-4 bg-white rounded-xl shadow-xs">
       <View className="p-4">
         <View className="flex-row items-center">
-          <Image 
-            source={item.photo} 
+          <Image
+            source={item.photo}
             className="w-16 h-16 rounded-full bg-gray-200"
           />
           <View className="ml-3 flex-1">
@@ -149,19 +189,19 @@ const OfflinePage = () => {
             </Text>
           </View>
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => handleCall(item.phone)}
           className="mt-3 bg-general-400 rounded-full py-2 items-center flex-row justify-center"
         >
           <Image source={icons.target} className="w-6 h-6 mr-2" tintColor="white" />
-          <Text className="text-white font-JakartaMedium">Call Now</Text>
+          <Text className="text-white font-JakartaMedium">Call Mechanic</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
-  const renderEmergencyContact = ({ item }) => (
-    <TouchableOpacity 
+  const renderEmergencyContact = ({ item }: { item: EmergencyContact }) => (
+    <TouchableOpacity
       onPress={() => handleCall(item.phone)}
       className="mr-3 bg-red-500 px-4 py-2 rounded-full flex-row items-center"
     >
@@ -170,13 +210,13 @@ const OfflinePage = () => {
     </TouchableOpacity>
   );
 
-  const renderTroubleshootingCard = ({ item }) => (
-    <TouchableOpacity 
+  const renderTroubleshootingCard = ({ item }: { item: TroubleshootingGuide }) => (
+    <TouchableOpacity
       onPress={() => setSelectedGuide(item)}
       className="flex-row bg-white rounded-xl mb-3 overflow-hidden shadow-sm"
     >
-      <Image 
-        source={item.image} 
+      <Image
+        source={item.image}
         className="w-24 h-24 bg-gray-200"
         resizeMode="cover"
       />
@@ -200,7 +240,7 @@ const OfflinePage = () => {
         </View>
         <ScrollView className="flex-1 p-4">
           {/* This would normally use a WebView component to render HTML, but for offline use we're hardcoding the content */}
-         <Image 
+          <Image
             source={selectedGuide.image}
             className="w-full h-48 rounded-lg mb-4"
             resizeMode="cover"
@@ -242,18 +282,18 @@ const OfflinePage = () => {
             </TouchableOpacity>
           </View>
         </View>
-        
+
         {/* Last known location */}
         <View className="bg-white p-4 mt-2 w-[95%] mx-auto flex-row items-center">
           <Image source={icons.point} className="w-8 h-8 mr-1" />
           <View className="flex-1">
             <Text className="text-sm text-gray-500 font-JakartaRegular">Last known location</Text>
             <Text className="text-base font-JakartaMedium">
-              {userAddress || "No location data available"}
+              {userLocation?.address || "No location data available"}
             </Text>
           </View>
         </View>
-        
+
         {/* Nearby mechanics section */}
         <View className="mt-1 p-4">
           <Text className="text-xl font-JakartaBold mb-3">Nearby Mechanics</Text>
@@ -266,29 +306,29 @@ const OfflinePage = () => {
             contentContainerStyle={{ paddingRight: 16 }}
           />
         </View>
-        
+
         {/* Emergency contacts section */}
         <View className="px-4 py-1">
           <Text className="text-xl font-JakartaBold mb-3">Emergency Contacts</Text>
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingRight: 16 }}
           >
             {emergencyContacts.map(contact => (
-             <View key={contact.id}>{renderEmergencyContact({ item: contact })}</View>
-           ))}
+              <View key={contact.id}>{renderEmergencyContact({ item: contact })}</View>
+            ))}
           </ScrollView>
         </View>
-        
+
         {/* Troubleshooting guides */}
         <View className="mt-1 p-4">
           <Text className="text-xl font-JakartaBold mb-3">Basic Troubleshooting</Text>
           {troubleshootingGuides.map(guide => (
-          <View key={guide.id}>{renderTroubleshootingCard({ item: guide })}</View>
-        ))}
+            <View key={guide.id}>{renderTroubleshootingCard({ item: guide })}</View>
+          ))}
         </View>
-        
+
         {/* Bottom padding */}
         <View className="h-24" />
       </ScrollView>

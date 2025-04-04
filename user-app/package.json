@@ -19,6 +19,7 @@
     "@quick-aid/core": "1.0.8",
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-native-community/geolocation": "^3.4.0",
+    "@react-native-community/netinfo": "11.4.1",
     "@react-native/metro-config": "^0.76.5",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",

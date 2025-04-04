@@ -6,35 +6,40 @@ import {
   View,
   TouchableOpacity,
   Image,
-  FlatList,
-  ActivityIndicator,
   StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Map from "@/src/components/Map";
-import { icons, images } from "@/src/constants";
+import { images } from "@/src/constants";
 import { useLocationStore } from "@/src/store";
+import { useNetworkStatus } from "@/src/hooks/useNetworkinfostatus";
 
 const Home = () => {
   const { setUserLocation, setSelectedService } = useLocationStore();
+  const { isConnected, setNetworkStatus } = useNetworkStatus();
+  const [isOnline, setIsOnline] = useState(isConnected);
+
+  // Update local state when network status changes
+  useEffect(() => {
+    setIsOnline(isConnected);
+  }, [isConnected]);
 
   const handleSignOut = () => {
     //signOut();
     router.replace("/(auth)/sign-in");
   };
 
-  const [isOnline, setIsOnline] = useState(true);
-
   const toggleOnlineStatus = () => {
     const newStatus = !isOnline;
     setIsOnline(newStatus);
-    
+    setNetworkStatus(newStatus);
+
     if (!newStatus) {
       // Navigate to offline page when toggled to offline
-      router.replace('/offline');
+      router.replace('/(root)/offline');
     }
   };
-  
+
   const services = [
     { id: 1, name: "Car Towing", image: images.service1 },
     { id: 2, name: "Fuel Refill", image: images.service2 },
@@ -45,7 +50,7 @@ const Home = () => {
   ];
 
   const [hasPermission, setHasPermission] = useState<boolean>(false);
-   
+
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -69,6 +74,13 @@ const Home = () => {
     })();
   }, []);
 
+  // Check for network status changes while on the home screen
+  useEffect(() => {
+    if (!isConnected) {
+      router.replace('/(root)/offline');
+    }
+  }, [isConnected]);
+
   const handleServicePress = (serviceName: string) => {
     setSelectedService(serviceName);
     router.push("/(root)/(tabs)/chatbot");
@@ -78,29 +90,28 @@ const Home = () => {
     router.push("/(root)/(tabs)/chatbot");
   };
 
-
   return (
     <SafeAreaView className="bg-general-500 flex-1">
       <View className="px-5 pb-20">
-      <View className="flex flex-row items-center justify-between my-5">
-        <Text className="text-2xl font-JakartaExtraBold">
-          Welcome 👋
-        </Text>
-        <View className="flex flex-row items-center">
-          <Text className="mr-2 font-JakartaMedium text-sm">
-            {isOnline ? "Online" : "Offline"}
+        <View className="flex flex-row items-center justify-between my-5">
+          <Text className="text-2xl font-JakartaExtraBold">
+            Welcome 👋
           </Text>
-          <TouchableOpacity
-            onPress={toggleOnlineStatus}
-            className={`w-14 h-7 rounded-full flex justify-center px-1 ${isOnline ? 'bg-green-500' : 'bg-gray-300'}`}
-          >
-            <View className={`w-5 h-5 bg-white rounded-full ${isOnline ? 'ml-auto' : 'mr-auto'}`} />
-          </TouchableOpacity>
+          <View className="flex flex-row items-center">
+            <Text className="mr-2 font-JakartaMedium text-sm">
+              {isOnline ? "Online" : "Offline"}
+            </Text>
+            <TouchableOpacity
+              onPress={toggleOnlineStatus}
+              className={`w-14 h-7 rounded-full flex justify-center px-1 ${isOnline ? 'bg-green-500' : 'bg-gray-300'}`}
+            >
+              <View className={`w-5 h-5 bg-white rounded-full ${isOnline ? 'ml-auto' : 'mr-auto'}`} />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
 
         <Text className="text-xl font-JakartaBold mb-3">
-          Your current location 
+          Your current location
         </Text>
         <View className="flex flex-row items-center bg-transparent h-[300px]">
           <Map />
@@ -108,7 +119,7 @@ const Home = () => {
 
         <View className="flex-row justify-between items-center mt-5 mb-3">
           <Text className="text-xl font-JakartaBold">
-            Our Services 
+            Our Services
           </Text>
           <TouchableOpacity onPress={handleViewAll}>
             <Text className="text-md font-JakartaMedium text-blue-500 underline">
@@ -125,7 +136,7 @@ const Home = () => {
               className="w-[31%] mb-4 bg-white rounded-lg px-3 pb-3 shadow-sm items-center justify-center"
               style={styles.serviceCard}
             >
-              <Image 
+              <Image
                 source={service.image}
                 className="w-24 h-24 "
                 resizeMode="contain"
