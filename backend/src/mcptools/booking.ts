@@ -35,11 +35,31 @@ server.tool(
         address: z
             .string()
             .optional()
-            .describe("It gives the nearby area or a landmark, to help in better navigation.")
+            .describe("It gives the nearby area or a landmark, to help in better navigation."),
+        make: z
+            .string()
+            .describe("Describes the make of the vehicle."),
+        model: z
+            .string()
+            .describe("describes the model of the car"),
+        year: z
+            .number()
+            .int()
+            .min(1900)
+            .describe("Tells the manufacturing year of the vehicle."),
+        licensePlate: z
+            .string()
+            .describe("The number plate of the vechicle, Eg: GJ-05=AB=1234")
     },
-    async ({userId, serviceType, latitude, longitude, description, address}) => {
+    async ({userId, serviceType, latitude, longitude, description, address, make, model, year, licensePlate}) => {
+        const Car = [{
+            make,
+            model,
+            year,
+            licensePlate,
+        }]
         try {
-            const res = bS.initiateServiceRequest({userId, serviceType, latitude, longitude, description, address})
+            const res = await bS.initiateServiceRequest({userId, serviceType, latitude, longitude, description, address, Car})
             
             return {
                 content: [
