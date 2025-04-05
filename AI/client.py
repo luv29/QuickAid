@@ -17,10 +17,10 @@ class MCPClient:
     def __init__(self):
         self.session: Optional[ClientSession] = None
         self.exit_stack = AsyncExitStack()
-        self.llm = OpenAI()
-        self.model = "gpt-4o-mini"
-        # self.llm = Groq()
-        # self.model = "llama3-70b-8192"
+        # self.llm = OpenAI()
+        # self.model = "gpt-4o-mini"
+        self.llm = Groq()
+        self.model = "qwen-2.5-32b"
 
     async def connect_to_server(self, server_script_path: str):
         """Connect to an MCP server."""

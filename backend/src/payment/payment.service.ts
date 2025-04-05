@@ -7,14 +7,12 @@ import { PaymentStatus } from '@prisma/client';
 @Injectable()
 export class PaymentService {
   private razorpay: Razorpay;
-
   constructor(private readonly db: DatabaseService) {
     this.razorpay = new Razorpay({
       key_id: process.env.RAZORPAY_KEY_ID,
       key_secret: process.env.RAZORPAY_KEY_SECRET,
     });
   }
-
   async createOrder(amount: number, serviceRequestId: string, comment: string) {
     const receipt = `receipt_order_${uuidv4()}`;
     const options = {
