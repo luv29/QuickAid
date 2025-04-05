@@ -230,7 +230,7 @@ export default function SignIn() {
           />
         </Pressable>
         <CustomText className="text-2xl -pt-10 font-semibold text-center">
-          Login and explore your city
+          Register instantly to access roadside assistance
         </CustomText>
       </View>
 

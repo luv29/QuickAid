@@ -3,6 +3,7 @@ import {
   MessagesService,
   UserService,
   MechanicDiscoveryService,
+  ServiceRequestService,
 } from "@quick-aid/core";
 
 const baseURL = process.env.EXPO_PUBLIC_API_URL!;
@@ -13,5 +14,12 @@ const authService = new AuthService(baseURL!);
 const userService = new UserService(baseURL!);
 const messagesService = new MessagesService(baseURL!);
 const mechanicDiscoveryService = new MechanicDiscoveryService(baseURL!);
+const servicesRequestService = new ServiceRequestService(baseURL!);
 
-export { authService, userService, messagesService, mechanicDiscoveryService };
+export {
+  authService,
+  userService,
+  messagesService,
+  mechanicDiscoveryService,
+  servicesRequestService,
+};

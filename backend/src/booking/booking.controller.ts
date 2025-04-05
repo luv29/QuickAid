@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, Request } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { BookingService } from './booking.service';
 import { ServiceType } from '@prisma/client';
 
@@ -16,11 +16,13 @@ class CreateServiceRequestDto {
 class MechanicResponseDto {
   serviceRequestId: string;
   isAccepted: boolean;
+  mechanicId: string;
 }
 
 class ConfirmBookingDto {
   serviceRequestId: string;
   mechanicId: string;
+  userId: string;
 }
 
 @Controller('booking')
@@ -29,19 +31,15 @@ export class BookingController {
 
   @Post('request')
   async createServiceRequest(
-    @Request() req,
     @Body() createServiceRequestDto: CreateServiceRequestDto,
   ): Promise<{ serviceRequestId: string; mechanicOffers: MechanicOffer[] }> {
     return this.bookingService.initiateServiceRequest(createServiceRequestDto);
   }
 
   @Post('mechanic/response')
-  async mechanicRespondsToRequest(
-    @Request() req,
-    @Body() responseDto: MechanicResponseDto,
-  ) {
+  async mechanicRespondsToRequest(@Body() responseDto: MechanicResponseDto) {
     return this.bookingService.mechanicRespondsToRequest(
-      req.user.id, // Mechanic ID from JWT
+      responseDto.mechanicId,
       responseDto.serviceRequestId,
       responseDto.isAccepted,
     );
@@ -53,12 +51,9 @@ export class BookingController {
   }
 
   @Post('confirm')
-  async confirmBooking(
-    @Request() req,
-    @Body() confirmBookingDto: ConfirmBookingDto,
-  ) {
+  async confirmBooking(@Body() confirmBookingDto: ConfirmBookingDto) {
     return this.bookingService.confirmBookingWithMechanic(
-      req.user.id, // User ID from JWT
+      confirmBookingDto.userId, // Explicitly passed instead of from JWT
       confirmBookingDto.serviceRequestId,
       confirmBookingDto.mechanicId,
     );

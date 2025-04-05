@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { View, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+
 import ScreenHeader from "@/src/components/ui/screen-header";
 import StepIndicator from "@/src/components/ui/stepIndecator";
 import CustomButton from "@/src/components/ui/custom-button";
@@ -7,7 +8,6 @@ import CustomText from "@/src/components/ui/custom-text";
 import ExpandableSection from "@/src/components/ui/expandable-section";
 import CustomImagePicker from "@/src/components/ui/custom-image-picker";
 import CustomInput from "@/src/components/ui/custom-input";
-
 import { useMutation } from "@tanstack/react-query";
 import { useAuthStore } from "@/src/state/useAuth";
 import { mechanicService } from "@/src/service";
@@ -44,10 +44,11 @@ const VerifyDetailsScreen: React.FC = () => {
       });
     },
     onSuccess: () => {
+      //toast.success("Details saved successfully!");
+      console.log("Mechanic details updated successfully");
     },
     onError: (error) => {
       console.error("Failed to update details", JSON.stringify(error));
-
     },
   });
 
