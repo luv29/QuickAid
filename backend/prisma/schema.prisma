@@ -137,7 +137,7 @@ model Car {
   model            String
   year             Int
   licensePlate     String
-  ServiceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
+  ServiceRequest   ServiceRequest? @relation("RequestToCar", fields: [serviceRequestId], references: [id])
   serviceRequestId String?         @db.ObjectId
 }
 
@@ -156,7 +156,7 @@ model ServiceRequest {
   createdAt     DateTime               @default(now())
   updatedAt     DateTime               @updatedAt
   payment       Payment?
-  car           Car[]
+  car           Car[] @relation("RequestToCar")
   chat          Chat?
   confirmations MechanicConfirmation[]
   reviews       Review[]               @relation("ServiceRequestReviews")
