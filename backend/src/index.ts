@@ -1,22 +1,20 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import server from "./utils/mcpserver";
+import "./mcptools/"
+
+
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { MailService } from "./mail/mail.service";
 
-// Create server instance
-const server = new McpServer({
-  name: "server",
-  version: "1.0.0",
-  capabilities: {
-    resources: {},
-    tools: {},
-  },
-});
 
 server.tool(
     "sos-emergency",
     "User uses it at the time of emergency. It takes the location of the user and send the email alerting the receipent about the user's situation along with it's location.",
     {
+        // userId: z
+        //     .string()
+        //     .describe("The _id of mongo db to get user details."),
+        // latitude: 
         to: z
             .string()
             .describe('Email of the reciever'),
@@ -49,16 +47,11 @@ server.tool(
     }
 )
 
-// server.tool(
-//     "userReviewAndRating",
-//     "This tool allows users to rate and review the services provided by the mechanics and leave them a comment"
-// )
-
-  async function main() {
+async function main() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
     console.log("MCP Server running on stdio");
-  }
+}
   
 main().catch((error) => {
     console.error("Fatal error in main():", error);

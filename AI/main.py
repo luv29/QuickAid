@@ -1,5 +1,5 @@
 import json
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from client import MCPClient
 from agent import build_agent
 from fastapi import FastAPI
@@ -13,12 +13,17 @@ async def main(query: InputSchema):
     client = MCPClient()
     conn = None
 
+    # inputs = {}
+    # if query.serviceRequestId:
+    #     input["serviceRequestId"] = query.serviceRequestId
+
     try:
         await client.connect_to_server("../backend/dist/index.js")
         agent, conn = await build_agent(client)
 
         config = {"configurable": {"thread_id": query.chat_id}}
-        messages = [HumanMessage(content=query.prompt, role="user")]
+        messages = [SystemMessage(content=f"Make use of this data as per requirements {query}", role="system"),
+                     HumanMessage(content=query.prompt, role="user")]
         output = await agent.ainvoke({"messages": messages}, config)
         
         return json.loads(output['messages'][-1].content)

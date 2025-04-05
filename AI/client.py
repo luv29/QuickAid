@@ -20,7 +20,7 @@ class MCPClient:
         # self.llm = OpenAI()
         # self.model = "gpt-4o-mini"
         self.llm = Groq()
-        self.model = "deepseek-r1-distill-llama-70b"
+        self.model = "llama3-70b-8192"
 
     async def connect_to_server(self, server_script_path: str):
         """Connect to an MCP server."""
@@ -95,6 +95,7 @@ class MCPClient:
             tool_args = json.loads(content.function.arguments)
 
             result = await self.session.call_tool(tool_name, tool_args)
+            
             final_text.append({
                 "from": tool_name,
                 "content": json.loads(result.content[0].text)
