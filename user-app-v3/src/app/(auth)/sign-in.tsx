@@ -271,8 +271,8 @@ export default function SignIn() {
                   resizeMode="contain"
                 />
               </Pressable>
-              <CustomText className="text-2xl -pt-10 font-semibold text-center">
-                Login and explore your city
+              <CustomText className="text-2xl mt-4 font-semibold text-center">
+                Register now and instantly access roadside assistance
               </CustomText>
             </View>
 

@@ -2,21 +2,23 @@ import { useState } from "react";
 import { Image, ScrollView, Text, View, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { icons, images } from "@/src/constants";
-import InputField from "@/src/components/InputField";
 import { router } from "expo-router";
+import { useAuthStore } from "@/src/state/useAuth";
 const Profile = () => {
   const handleSignOut = () => {
       //signOut();
       router.replace("/(auth)/sign-in");
     };
 
+    const {mechanic} = useAuthStore();
+
   // Dummy user data
   const dummyUser = {
-    firstName: "Rakesh",
-    lastName: "Verma",
+    firstName: mechanic?.name,
+    lastName: mechanic?.name,
     imageUrl: "https://randomuser.me/api/portraits/men/1.jpg",
-    primaryEmailAddress: { emailAddress: "rakesh.verma@example.com" },
-    primaryPhoneNumber: { phoneNumber: "+91 1234 567 890" }
+    primaryEmailAddress: { emailAddress: mechanic?.email},
+    primaryPhoneNumber: { phoneNumber: mechanic?.phoneNumber}
   };
 
 

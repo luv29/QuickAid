@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Text, Alert } from "react-native";
+import { View, StyleSheet, Text, Alert,Platform } from "react-native";
 import * as Location from "expo-location";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker, PROVIDER_DEFAULT } from "react-native-maps";
 
 import Constants from 'expo-constants';
 
@@ -134,13 +134,16 @@ const Map: React.FC = () => {
     <View style={styles.container}>
       <MapView
         style={styles.map}
-        provider={PROVIDER_GOOGLE}
+        provider={PROVIDER_DEFAULT}
         initialRegion={{
           latitude: userLocation.latitude,
           longitude: userLocation.longitude,
           latitudeDelta: 0.02,
           longitudeDelta: 0.02,
         }}
+        mapType={Platform.OS === 'ios' ? "mutedStandard" : "standard"}
+        tintColor="black"
+        userInterfaceStyle="light"
         customMapStyle={[
           {
             "elementType": "geometry",

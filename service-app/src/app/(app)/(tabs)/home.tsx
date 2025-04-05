@@ -82,15 +82,6 @@ const Home = () => {
   const { mechanic } = useAuthStore();
   const queryClient = useQueryClient();
 
-  // Current order the mechanic is fulfilling (could be fetched from API in a real app)
-  const [currentOrder, setCurrentOrder] = useState<CurrentOrder>({
-    id: "current1",
-    userName: "John Smith",
-    userAddress: "123 Main St, Springfield",
-    issue: "Flat Tyre",
-    earnings: 25,
-  });
-
   // Use React Query to fetch mechanic confirmations
   const { data: mechanicData, isLoading: isLoadingMechanic } = useQuery({
     queryKey: ['mechanicConfirmations', mechanic?.id],
@@ -100,7 +91,6 @@ const Home = () => {
         MechanicConfirmation: true,
         serviceRequests: true,
       });
-      console.log("Mechanic data:", data.data);
       return data.data as MechanicData;
     },
     refetchInterval: 30000, // Refetch every 30 seconds
