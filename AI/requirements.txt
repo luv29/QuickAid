@@ -1,0 +1,17 @@
+langgraph
+langgraph-sdk
+langgraph-checkpoint-sqlite
+langsmith
+langchain-community
+langchain-core
+langchain-openai
+notebook
+trustcall
+langgraph-cli[inmem]
+openai
+groq
+mcp
+python-dotenv
+aiosqlite
+fastapi 
+uvicorn
