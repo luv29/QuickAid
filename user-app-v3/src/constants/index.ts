@@ -45,6 +45,7 @@ import onboard2 from "@/assets/images/onboard3.jpg";
 import onboard3 from "@/assets/images/onboard4.jpg";
 import onboard4 from "@/assets/images/onboardingimg1.jpg";
 import QwikAidLogo from "@/assets/images/QwikAidLogo.jpeg";
+import Error from "@/assets/images/error.jpeg";
 
 export const images = {
   onboarding1,
@@ -68,7 +69,8 @@ export const images = {
   Towing,
   fuel,
   QwikAidLogo,
-};
+  Error,
+  flatTyre};
 
 export const icons = {
   arrowDown,

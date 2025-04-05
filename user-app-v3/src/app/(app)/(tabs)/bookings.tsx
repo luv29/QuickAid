@@ -245,7 +245,7 @@ const ServiceRequestHistory = () => {
             ) : isError ? (
               <>
                 {/* <Image
-                  source={images.error || require('@/src/assets/images/error.png')}
+                  source={images.Error || require('@/src/assets/images/error.jpeg')}
                   className="w-40 h-40"
                   alt="Error loading requests"
                   resizeMode="contain"
