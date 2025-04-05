@@ -15,8 +15,6 @@ const isRegistrationComplete = (mechanic: Mechanic): boolean => {
     mechanic.isPhoneNumberVerified === true &&
     mechanic.address &&
     mechanic.location &&
-    mechanic.services &&
-    mechanic.services.length > 0 &&
     mechanic.BankDetails
   );
 };
@@ -61,6 +59,7 @@ const Index = () => {
           // Check if mechanic has all required fields
           if (isRegistrationComplete(mechanic)) {
             // Mechanic has completed registration
+            console.log("Mechanic found:", mechanic);
             if (mechanic.approved === true) {
               router.push("/(app)/(tabs)");
             } else {

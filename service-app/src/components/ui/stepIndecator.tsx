@@ -13,7 +13,7 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, totalSteps }
         <View
           key={index}
           className={`flex-1 h-1 rounded-full ${
-            index < currentStep ? "bg-[#E48F45]" : "bg-gray-300"
+            index < currentStep ? "bg-[#0286FF]" : "bg-gray-300"
           }`}
         />
       ))}

@@ -145,14 +145,14 @@ export class BookingService {
       });
     }
 
-    // 5. Send notifications to the mechanics
-    await this.notificationService.sendServiceRequestToMechanics(
-      serviceRequest.id,
-      mechanicOffers.map((offer) => offer.id),
-      data.serviceType,
-      mechanicOffers[0].distance.text, // Use the closest mechanic's distance for simplicity
-      mechanicOffers[0].cost, // Use the closest mechanic's cost for simplicity
-    );
+    // // 5. Send notifications to the mechanics
+    // await this.notificationService.sendServiceRequestToMechanics(
+    //   serviceRequest.id,
+    //   mechanicOffers.map((offer) => offer.id),
+    //   data.serviceType,
+    //   mechanicOffers[0].distance.text, // Use the closest mechanic's distance for simplicity
+    //   mechanicOffers[0].cost, // Use the closest mechanic's cost for simplicity
+    // );
 
     return {
       serviceRequestId: serviceRequest.id,
@@ -285,12 +285,12 @@ export class BookingService {
       },
     });
 
-    // Send confirmation notification to the mechanic
-    await this.notificationService.sendBookingConfirmationToMechanic(
-      mechanicId,
-      serviceRequestId,
-      serviceRequest.serviceType,
-    );
+    // // Send confirmation notification to the mechanic
+    // await this.notificationService.sendBookingConfirmationToMechanic(
+    //   mechanicId,
+    //   serviceRequestId,
+    //   serviceRequest.serviceType,
+    // );
 
     // Create a chat room for communication
     const chat = await this.prisma.chat.create({
