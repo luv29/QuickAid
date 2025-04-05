@@ -131,14 +131,14 @@ const OfflinePage = () => {
 
     if (newStatus) {
       // Navigate back to home tab when toggled to online
-      router.replace('/(root)/(tabs)/home');
+      router.replace('/(app)/(tabs)/home');
     }
   };
 
   // Check if network status changes externally
   useEffect(() => {
     if (isConnected) {
-      router.replace('/(root)/(tabs)/home');
+      router.replace('/(app)/(tabs)/home');
     }
   }, [isConnected]);
 

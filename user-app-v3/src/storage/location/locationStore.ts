@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { mmkvStorage } from "../storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PermissionStatus } from "expo-location";
 
 export interface Geolocation {
@@ -13,6 +13,32 @@ export interface Geolocation {
   latitude: number;
   longitude: number;
 }
+
+const asyncStorageAdapter = {
+  getItem: async (name: string) => {
+    try {
+      const value = await AsyncStorage.getItem(name);
+      return value || null;
+    } catch (error) {
+      console.error("Error reading from AsyncStorage:", error);
+      return null;
+    }
+  },
+  setItem: async (name: string, value: string) => {
+    try {
+      await AsyncStorage.setItem(name, value);
+    } catch (error) {
+      console.error("Error writing to AsyncStorage:", error);
+    }
+  },
+  removeItem: async (name: string) => {
+    try {
+      await AsyncStorage.removeItem(name);
+    } catch (error) {
+      console.error("Error removing from AsyncStorage:", error);
+    }
+  },
+};
 
 interface LocationStore {
   locationPermissionStatus: PermissionStatus;
@@ -29,14 +55,14 @@ export const useLocationStore = create<LocationStore>()(
       setLocationPermissionStatus: (status: PermissionStatus) =>
         set({ locationPermissionStatus: status }),
 
-      geolocation: null as null,
+      geolocation: null,
 
-      setGeolocation: async (geolocation: any) =>
+      setGeolocation: (geolocation: Geolocation) =>
         set({ geolocation: geolocation }),
     }),
     {
       name: "location-storage",
-      storage: createJSONStorage(() => mmkvStorage),
+      storage: createJSONStorage(() => asyncStorageAdapter),
     }
   )
 );

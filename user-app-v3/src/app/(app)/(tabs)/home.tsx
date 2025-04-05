@@ -36,7 +36,7 @@ const Home = () => {
 
     if (!newStatus) {
       // Navigate to offline page when toggled to offline
-      router.replace('/(root)/offline');
+      router.replace('/(app)/offline');
     }
   };
 
@@ -77,17 +77,17 @@ const Home = () => {
   // Check for network status changes while on the home screen
   useEffect(() => {
     if (!isConnected) {
-      router.replace('/(root)/offline');
+      router.replace('/(app)/offline');
     }
   }, [isConnected]);
 
   const handleServicePress = (serviceName: string) => {
     setSelectedService(serviceName);
-    router.push("/(root)/(tabs)/chatbot");
+    router.push("/(app)/(tabs)/chatbot");
   };
 
   const handleViewAll = () => {
-    router.push("/(root)/(tabs)/chatbot");
+    router.push("/(app)/(tabs)/chatbot");
   };
 
   return (

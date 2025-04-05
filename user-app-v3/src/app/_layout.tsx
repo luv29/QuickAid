@@ -1,57 +1,65 @@
 import { SplashScreen, Stack } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator } from "react-native";
-import { ClerkProvider, ClerkLoaded, ClerkLoading } from "@clerk/clerk-expo";
-import { tokenCache } from "../cache";
+import { View, ActivityIndicator } from "react-native";
 import * as Fonts from "expo-font";
+import { useFonts } from "expo-font";
+import { fonts } from "@/src/utils/fonts";
+import { AppProvider } from "@/src/components/providers/app-provider";
+import Toast from "react-native-toast-message";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import "../../global.css";
-import { fonts } from "../utils/fonts";
-import { AppProvider } from "../components/providers/app-provider";
 
+// Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
-
-  const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
-  console.log("publishableKey", publishableKey);
-
-  if (!publishableKey) {
-    throw new Error("Add EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY to your .env file");
-  }
+  const [loaded] = useFonts({
+    "Jakarta-Bold": require("../../assets/fonts/PlusJakartaSans-Bold.ttf"),
+    "Jakarta-ExtraBold": require("../../assets/fonts/PlusJakartaSans-ExtraBold.ttf"),
+    "Jakarta-ExtraLight": require("../../assets/fonts/PlusJakartaSans-ExtraLight.ttf"),
+    "Jakarta-Light": require("../../assets/fonts/PlusJakartaSans-Light.ttf"),
+    "Jakarta-Medium": require("../../assets/fonts/PlusJakartaSans-Medium.ttf"),
+    Jakarta: require("../../assets/fonts/PlusJakartaSans-Regular.ttf"),
+    "Jakarta-SemiBold": require("../../assets/fonts/PlusJakartaSans-SemiBold.ttf"),
+  });
 
   useEffect(() => {
     async function prepare() {
       try {
-        // Remove the loading simulation
+        // Load fonts
         await Fonts.loadAsync(fonts);
       } catch (e) {
-        console.warn(e);
+        console.warn("Error loading fonts:", e);
       } finally {
-        // Tell the application to render
         setIsReady(true);
+        // Hide splash screen once everything is ready
+        await SplashScreen.hideAsync();
       }
     }
 
     prepare();
   }, []);
 
+  // Show a loading indicator if assets aren't loaded yet
   if (!isReady) {
     return (
-      <ActivityIndicator className="flex-1 items-center justify-center bg-white" />
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'white' }}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
     );
   }
 
   return (
-    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-      <ClerkLoading>
-        <ActivityIndicator className="flex-1 items-center justify-center bg-white" />
-      </ClerkLoading>
-      <ClerkLoaded>
-        <AppProvider>
-          <Stack />
-        </AppProvider>
-      </ClerkLoaded>
-    </ClerkProvider>
+    <SafeAreaProvider>
+      <AppProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(auth)" options={{ animation: "fade" }} />
+          <Stack.Screen name="(app)" options={{ animation: "fade" }} />
+        </Stack>
+        <Toast />
+      </AppProvider>
+    </SafeAreaProvider>
   );
 }

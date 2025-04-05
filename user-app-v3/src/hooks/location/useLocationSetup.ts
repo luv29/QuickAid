@@ -3,10 +3,11 @@ import {
   Geolocation,
   useLocationStore,
 } from "@/src/storage/location/locationStore";
-import { mmkvStorage } from "@/src/storage/storage";
 import { useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface LocationSetupResult {
+  getCurrentCoordinates: () => Promise<Coordinates | null>;
   handleInitializeLocation: () => Promise<void>;
   isLoading: boolean;
   isError: boolean;
@@ -56,13 +57,16 @@ export const useLocationSetup = (): LocationSetupResult => {
     coordinates: Coordinates
   ): Promise<Geolocation | null> => {
     const cacheKey = getCacheKey(coordinates);
-    const cachedResult = mmkvStorage.getJsonItem(cacheKey);
-
-    if (cachedResult) {
-      return cachedResult as Geolocation;
-    }
 
     try {
+      // Get from AsyncStorage instead of mmkvStorage
+      const cachedData = await AsyncStorage.getItem(cacheKey);
+      const cachedResult = cachedData ? JSON.parse(cachedData) : null;
+
+      if (cachedResult) {
+        return cachedResult as Geolocation;
+      }
+
       const [reverseGeocodedLocation] = await ExpoLocation.reverseGeocodeAsync(
         coordinates
       );
@@ -71,7 +75,8 @@ export const useLocationSetup = (): LocationSetupResult => {
         coordinates
       );
 
-      mmkvStorage.setJsonItem(cacheKey, geolocation);
+      // Store in AsyncStorage instead of mmkvStorage
+      await AsyncStorage.setItem(cacheKey, JSON.stringify(geolocation));
       return geolocation;
     } catch (err) {
       console.error("Reverse geocoding failed:", err);
@@ -79,12 +84,24 @@ export const useLocationSetup = (): LocationSetupResult => {
     }
   };
 
-  const getReverseGeolocation = async (): Promise<Geolocation | null> => {
+  const getCurrentCoordinates = async (): Promise<Coordinates | null> => {
+    const status = await requestLocationPermission();
+
+    if (status !== ExpoLocation.PermissionStatus.GRANTED) {
+      throw new Error("Location permission denied");
+    }
     const currentLocation = await ExpoLocation.getCurrentPositionAsync();
-    const coordinates = {
+    return {
       latitude: currentLocation.coords.latitude,
       longitude: currentLocation.coords.longitude,
     };
+  };
+
+  const getReverseGeolocation = async (): Promise<Geolocation | null> => {
+    const coordinates = await getCurrentCoordinates();
+    if (!coordinates) {
+      return null;
+    }
 
     return handleReverseGeocode(coordinates);
   };
@@ -111,5 +128,10 @@ export const useLocationSetup = (): LocationSetupResult => {
     }
   };
 
-  return { handleInitializeLocation, isLoading, isError };
+  return {
+    getCurrentCoordinates,
+    handleInitializeLocation,
+    isLoading,
+    isError,
+  };
 };

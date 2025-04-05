@@ -1,7 +1,19 @@
 import { Stack } from "expo-router";
 
-const AppLayout = () => {
-  return <Stack />;
+const Layout = () => {
+  return (
+    <Stack>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      {/* <Stack.Screen name="find-ride" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="confirm-ride"
+        options={{
+          headerShown: false,
+        }}
+      /> */}
+      <Stack.Screen name="offline" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
+    </Stack>
+  );
 };
 
-export default AppLayout;
+export default Layout;
