@@ -1,3 +1,4 @@
+import server from "src/utils/mcpserver";
 import { z } from "zod";
 import { MailService } from "../mail/mail.service";
 
@@ -7,7 +8,7 @@ server.tool(
     {
         to: z
             .string()
-            .describe('Email of the reciever'),
+            .describe("Email of the reciever, if not given always ask user, never give by your own"),
         subject: z
             .string()
             .min(10, "Too Short Subject.")
@@ -22,17 +23,31 @@ server.tool(
             .describe(`Generate an html page that will be shown in the email, it should represent the nature of urgency and also grab attention, and it should have a view location button, that will redirect the receiver to google maps to the location of the user, give dummy location if the location is not specified. The html you generate must be beautiful and attention grabbing`)
     },
     async ({to, subject, text, html}) => {
-        const mail = new MailService();
-        var x = await mail.sendMail({to, subject, text, html});
-        return {
-            content: [
-                {
-                    type: "text",
-                    "text": JSON.stringify({
-                        action: "mail sent successfully."
-                    })
-                }
-            ]
+        try {
+            const mail = new MailService();
+            let res = await mail.sendMail({to, subject, text, html});
+            return {
+                content: [
+                    {
+                        type: "text",
+                        "text": JSON.stringify({
+                            action: "mail sent successfully.",
+                            ...res
+                        })
+                    }
+                ]
+            }
+        } catch(e) {
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify({
+                            message: e.message
+                        })
+                    }
+                ]
+            }
         }
     }
 )
