@@ -4,6 +4,13 @@ import { ServiceType } from '@prisma/client';
 
 import { MechanicOffer } from './booking.service';
 
+type Car = {
+  make: string;
+  model: string;
+  year: number;
+  licensePlate: string;
+};
+
 class CreateServiceRequestDto {
   userId: string;
   serviceType: ServiceType;
@@ -11,6 +18,7 @@ class CreateServiceRequestDto {
   longitude: number;
   description?: string;
   address?: string;
+  Car?: Car[];
 }
 
 class MechanicResponseDto {

@@ -58,7 +58,6 @@ model User {
   name                  String?
   email                 String?
   password              String?
-  cars                  Car[]
   serviceRequests       ServiceRequest[]   @relation("UserServiceRequests")
   emergencyContacts     EmergencyContact[]
   sentMessages          Message[]          @relation("UserMessages")
@@ -133,13 +132,13 @@ model Mechanic {
 }
 
 model Car {
-  id           String @id @default(auto()) @map("_id") @db.ObjectId
-  userId       String @db.ObjectId
-  user         User   @relation(fields: [userId], references: [id])
-  make         String
-  model        String
-  year         Int
-  licensePlate String
+  id               String          @id @default(auto()) @map("_id") @db.ObjectId
+  make             String
+  model            String
+  year             Int
+  licensePlate     String
+  ServiceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
+  serviceRequestId String?         @db.ObjectId
 }
 
 model ServiceRequest {
@@ -157,6 +156,7 @@ model ServiceRequest {
   createdAt     DateTime               @default(now())
   updatedAt     DateTime               @updatedAt
   payment       Payment?
+  car           Car[]
   chat          Chat?
   confirmations MechanicConfirmation[]
   reviews       Review[]               @relation("ServiceRequestReviews")

@@ -34,6 +34,12 @@ interface CreateServiceRequestDto {
   longitude: number;
   description?: string;
   address?: string;
+  Car?: {
+    make: string;
+    model: string;
+    year: number;
+    licensePlate: string;
+  }[];
 }
 
 @Injectable()
@@ -57,6 +63,16 @@ export class BookingService {
         description: data.description,
         address: data.address,
         status: ServiceStatus.REQUESTED,
+        car: data.Car
+          ? {
+              create: data.Car.map((car) => ({
+                make: car.make,
+                model: car.model,
+                year: car.year,
+                licensePlate: car.licensePlate,
+              })),
+            }
+          : undefined,
       },
     });
 

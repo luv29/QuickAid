@@ -181,7 +181,7 @@ const Home = () => {
               <Text className="font-JakartaMedium text-green-600">In Progress</Text>
             </View>
             <TouchableOpacity
-              onPress={() => router.push("/(root)/route")}
+              onPress={() => router.push("/(app)/route")}
               className="bg-blue-500 mt-2 py-3 rounded-xl"
             >
               <Text className="text-white text-center font-JakartaBold">Navigate to Customer</Text>

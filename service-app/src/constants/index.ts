@@ -31,6 +31,9 @@ import onboarding1 from "@/assets/images/onboarding1.png";
 import onboarding2 from "@/assets/images/onboarding2.png";
 import onboarding3 from "@/assets/images/onboarding3.png";
 import signUpCar from "@/assets/images/signup-car.png";
+import ob1 from "@/assets/images/ob1.jpeg";
+import ob2 from "@/assets/images/ob2.jpeg";
+
 
 export const images = {
   onboarding1,
@@ -41,6 +44,8 @@ export const images = {
   check,
   noResult,
   message,
+  ob1,
+  ob2,
 };
 
 export const icons = {
@@ -77,7 +82,7 @@ export const onboarding = [
     title: "Breakdown? Help is a tap away!",
     description:
       "With QwikAid, get roadside assistance instantly, no matter where you are!",
-    image: images.onboarding1,
+    image: images.ob1,
   },
   {
     id: 2,
@@ -91,7 +96,7 @@ export const onboarding = [
     title: "Safe and available 24/7 —let’s roll!",
     description:
       "Use SOS, offline support, and multilingual features for a secure journey.",
-    image: images.onboarding3,
+    image: images.ob2,
   },
 ];
 

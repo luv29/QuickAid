@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Text, TouchableOpacity, StatusBar, ActivityIndicator, Alert } from "react-native";
+import { View, StyleSheet, Text, TouchableOpacity, StatusBar, ActivityIndicator, Platform } from "react-native";
 import * as Location from "expo-location";
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker, Polyline } from "react-native-maps";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocationStore } from "@/src/store";
@@ -13,15 +13,13 @@ const RouteScreen = () => {
   const [error, setError] = useState(null);
   const [estimatedTime, setEstimatedTime] = useState("--");
   const [distance, setDistance] = useState("--");
-  
+
   // For demo purposes - Dumas Beach, Surat coordinates
   const customerLocation = {
-    latitude: 20.8295, 
-    longitude: 72.5175,
+    latitude: 21.08627,
+    longitude: 72.71163,
     address: "Dumas Beach, Surat, Gujarat"
   };
-  
-  // Function to properly decode Google Maps polyline
   const decodePolyline = (encoded) => {
     let index = 0;
     const len = encoded.length;
@@ -33,25 +31,25 @@ const RouteScreen = () => {
       let b;
       let shift = 0;
       let result = 0;
-      
+
       do {
         b = encoded.charCodeAt(index++) - 63;
         result |= (b & 0x1f) << shift;
         shift += 5;
       } while (b >= 0x20);
-      
+
       const dlat = ((result & 1) ? ~(result >> 1) : (result >> 1));
       lat += dlat;
 
       shift = 0;
       result = 0;
-      
+
       do {
         b = encoded.charCodeAt(index++) - 63;
         result |= (b & 0x1f) << shift;
         shift += 5;
       } while (b >= 0x20);
-      
+
       const dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
       lng += dlng;
 
@@ -63,8 +61,8 @@ const RouteScreen = () => {
 
     return points;
   };
-  
-  // Get directions between mechanic and customer
+
+  // Fetch directions using OSRM API
   useEffect(() => {
     const fetchDirections = async () => {
       if (!userLatitude || !userLongitude) {
@@ -72,48 +70,43 @@ const RouteScreen = () => {
         setIsLoading(false);
         return;
       }
-      
+
       try {
         console.log(`Fetching directions from ${userLatitude},${userLongitude} to ${customerLocation.latitude},${customerLocation.longitude}`);
-        
-        // Replace with your actual Google Maps API key
-        // Make sure this API key has Directions API enabled
-        const apiKey = "AIzaSyDwBWkRrX9vBHjQrqo0fJbA1I6Fn7JipMg"; // IMPORTANT: Replace this with your valid API key
-        
-        const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${userLatitude},${userLongitude}&destination=${customerLocation.latitude},${customerLocation.longitude}&key=${apiKey}`;
-        
+
+        // Using Open Source Routing Machine (OSRM) API - free and doesn't require an API key
+        const url = `https://router.project-osrm.org/route/v1/driving/${userLongitude},${userLatitude};${customerLocation.longitude},${customerLocation.latitude}?overview=full&geometries=polyline`;
+
         console.log("Requesting URL:", url);
-        
+
         const response = await fetch(url);
         const result = await response.json();
-        
-        console.log("Directions API response status:", result.status);
-        
-        if (result.status !== "OK") {
-          console.error("Directions API error:", result);
-          throw new Error(result.error_message || "Failed to get directions");
+
+        console.log("OSRM API response status:", result.code);
+
+        if (result.code !== "Ok" || !result.routes || result.routes.length === 0) {
+          throw new Error("Failed to get directions");
         }
-        
-        if (result.routes && result.routes.length > 0) {
-          // Decode the polyline points
-          const points = result.routes[0].overview_polyline.points;
-          const decodedPoints = decodePolyline(points);
-          
-          // Extract duration and distance
-          if (result.routes[0].legs && result.routes[0].legs.length > 0) {
-            const leg = result.routes[0].legs[0];
-            setEstimatedTime(leg.duration.text);
-            setDistance(leg.distance.text);
-          }
-          
-          setRoute(decodedPoints);
-        } else {
-          throw new Error("No routes found");
-        }
+
+        // Process the route data
+        const mainRoute = result.routes[0];
+
+        // Decode the polyline
+        const points = decodePolyline(mainRoute.geometry);
+        setRoute(points);
+
+        // Calculate estimated time (OSRM returns duration in seconds)
+        const durationMinutes = Math.round(mainRoute.duration / 60);
+        setEstimatedTime(`${durationMinutes} min`);
+
+        // Calculate distance (OSRM returns distance in meters)
+        const distanceKm = (mainRoute.distance / 1000).toFixed(1);
+        setDistance(`${distanceKm} km`);
+
       } catch (err) {
         console.error("Error fetching directions:", err);
         setError("Failed to load directions: " + (err.message || "Unknown error"));
-        
+
         // Fallback to straight line for demo purposes
         if (userLatitude && userLongitude) {
           setRoute([
@@ -127,10 +120,10 @@ const RouteScreen = () => {
         setIsLoading(false);
       }
     };
-    
+
     fetchDirections();
   }, [userLatitude, userLongitude]);
-  
+
   if (isLoading) {
     return (
       <View style={[styles.container, styles.center]}>
@@ -139,12 +132,12 @@ const RouteScreen = () => {
       </View>
     );
   }
-  
+
   if (error) {
     return (
       <View style={[styles.container, styles.center]}>
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.retryButton}
           onPress={() => router.back()}
         >
@@ -157,18 +150,17 @@ const RouteScreen = () => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      
+
       {/* Back Button */}
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.backButton}
         onPress={() => router.back()}
       >
         <Ionicons name="arrow-back" size={24} color="black" />
       </TouchableOpacity>
-      
+
       {/* Map View */}
       <MapView
-        provider={PROVIDER_GOOGLE}
         style={styles.map}
         initialRegion={{
           latitude: (userLatitude + customerLocation.latitude) / 2,
@@ -176,7 +168,14 @@ const RouteScreen = () => {
           latitudeDelta: Math.abs(userLatitude - customerLocation.latitude) * 1.5,
           longitudeDelta: Math.abs(userLongitude - customerLocation.longitude) * 1.5,
         }}
-        mapType="standard"
+        // Use the base MapView from expo which works without custom provider
+        mapType={Platform.OS === 'ios' ? "mutedStandard" : "standard"}
+        tintColor="black"
+        userInterfaceStyle="light"
+        // This URL template will use OpenStreetMap tiles - no API key needed
+        urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        zoomEnabled={true}
+        rotateEnabled={true}
       >
         {/* Mechanic marker */}
         <Marker
@@ -188,7 +187,7 @@ const RouteScreen = () => {
           description={userAddress || "Mechanic's current location"}
           pinColor="blue"
         />
-        
+
         {/* Customer marker */}
         <Marker
           coordinate={{
@@ -199,7 +198,7 @@ const RouteScreen = () => {
           description={customerLocation.address}
           pinColor="red"
         />
-        
+
         {/* Route polyline */}
         {route && (
           <Polyline
@@ -209,10 +208,8 @@ const RouteScreen = () => {
           />
         )}
       </MapView>
-      
-      {/* Navigation Info Card */}
       <View style={styles.infoCard}>
-        <Text style={styles.infoTitle}>Navigating to Customer</Text>
+        <Text style={styles.infoTitle}>Route to Customer</Text>
         <Text style={styles.infoAddress}>{customerLocation.address}</Text>
         <View style={styles.infoRow}>
           <View style={styles.infoItem}>
