@@ -5,44 +5,178 @@ import {
   Image,
   TouchableOpacity,
   FlatList,
-  StyleSheet,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Location from "expo-location";
 import { router } from "expo-router";
 import { useLocationStore } from "@/src/store";
+import { mechanicService } from "@/src/service";
+import { useAuthStore } from "@/src/state/useAuth";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import Map from "@/src/components/Map";
+
+// Define TypeScript interfaces for better type safety
+interface ServiceRequest {
+  id: string;
+  issueType: string;
+  // Add other properties as needed
+}
+
+// Enum for confirmation status
+enum ConfirmationStatus {
+  PENDING = "PENDING",
+  CONFIRMED = "CONFIRMED",
+  REJECTED = "REJECTED",
+  STARTED = "STARTED"
+}
+
+interface MechanicConfirmation {
+  id: string;
+  serviceRequestId: string;
+  distanceValue: number;
+  distanceText: string;
+  durationText: string;
+  durationValue: number;
+  estimatedCost: number;
+  status: ConfirmationStatus;
+  createdAt: string;
+  respondedAt: string | null;
+  mechanicId: string;
+}
+
+interface MechanicData {
+  MechanicConfirmation: MechanicConfirmation[];
+  serviceRequests: ServiceRequest[];
+}
+
+interface RequestItem {
+  id: string;
+  serviceRequestId: string;
+  issue: string;
+  distance: string;
+  distanceText: string;
+  earnings: number;
+  status: ConfirmationStatus;
+  createdAt: string;
+  accepted?: boolean;
+}
+
+interface CurrentOrder {
+  id: string;
+  userName: string;
+  userAddress: string;
+  issue: string;
+  earnings: number;
+}
 
 const Home = () => {
   const { setUserLocation } = useLocationStore();
   const [hasPermission, setHasPermission] = useState(false);
-  const [location, setLocation] = useState(null);
+  const [location, setLocation] = useState<Location.LocationObjectCoords | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("received"); // "received" or "waiting"
-  
-  // Current order the mechanic is fulfilling
-  const [currentOrder, setCurrentOrder] = useState({
+
+  const { mechanic } = useAuthStore();
+  const queryClient = useQueryClient();
+
+  // Current order the mechanic is fulfilling (could be fetched from API in a real app)
+  const [currentOrder, setCurrentOrder] = useState<CurrentOrder>({
     id: "current1",
     userName: "John Smith",
     userAddress: "123 Main St, Springfield",
     issue: "Flat Tyre",
     earnings: 25,
   });
-  
-  const [receivedRequests, setReceivedRequests] = useState([
-    { id: "1", issue: "Flat Tyre", distance: 3.2, earnings: 15, accepted: false },
-    { id: "2", issue: "Dead Battery", distance: 5.5, earnings: 20, accepted: false },
-    { id: "3", issue: "Stuck in Ditch", distance: 2.1, earnings: 25, accepted: false },
-    { id: "4", issue: "Dead Battery", distance: 5.5, earnings: 20, accepted: false },
-    { id: "5", issue: "Stuck in Ditch", distance: 2.1, earnings: 25, accepted: false },
-  ]);
-  
-  const [waitingRequests, setWaitingRequests] = useState([
-    { id: "6", issue: "Engine Failure", distance: 4.0, earnings: 30 },
-    { id: "7", issue: "Keys Locked Inside", distance: 1.8, earnings: 18 },
-  ]);
-  
+
+  // Use React Query to fetch mechanic confirmations
+  const { data: mechanicData, isLoading: isLoadingMechanic } = useQuery({
+    queryKey: ['mechanicConfirmations', mechanic?.id],
+    queryFn: async () => {
+      if (!mechanic?.id) return null;
+      const data = await mechanicService.findOne(mechanic.id, {
+        MechanicConfirmation: true,
+        serviceRequests: true,
+      });
+      console.log("Mechanic data:", data.data);
+      return data.data as MechanicData;
+    },
+    refetchInterval: 30000, // Refetch every 30 seconds
+    enabled: !!mechanic?.id, // Only run if mechanic ID exists
+  });
+
+  // Define mutations for accept/reject functionality
+  const updateConfirmationMutation = useMutation({
+    mutationFn: async ({ confirmationId, status }: { confirmationId: string, status: ConfirmationStatus }) => {
+      if (!mechanic?.id) return null;
+      return await mechanicService.update(mechanic?.id, {
+        MechanicConfirmation: {
+          update: {
+            where: {
+              id: confirmationId,
+            },
+            data: {
+              status: status,
+            }
+          }
+        }
+      });
+    },
+    onSuccess: () => {
+      // Invalidate and refetch data after successful mutation
+      queryClient.invalidateQueries({ queryKey: ['mechanicConfirmations', mechanic?.id] });
+    },
+    onError: (error) => {
+      Alert.alert("Error", "Failed to update request status. Please try again.");
+      console.error("Update confirmation error:", error);
+    },
+  });
+
+  // Process the mechanic data into received (PENDING) and waiting (CONFIRMED) requests
+  const [receivedRequests, setReceivedRequests] = useState<RequestItem[]>([]);
+  const [waitingRequests, setWaitingRequests] = useState<RequestItem[]>([]);
+
+  // Update state when mechanicData changes
+  useEffect(() => {
+    if (mechanicData?.MechanicConfirmation) {
+      // Process and update the requests based on mechanicData
+      const processConfirmations = () => {
+        const pending: RequestItem[] = [];
+        const confirmed: RequestItem[] = [];
+
+        mechanicData.MechanicConfirmation.forEach(confirmation => {
+          // Create the request item
+          const requestItem: RequestItem = {
+            id: confirmation.id,
+            serviceRequestId: confirmation.serviceRequestId,
+            issue: "Service Request", // Default value if service request is not found
+            distance: (confirmation.distanceValue / 1000).toFixed(1), // Convert meters to km
+            distanceText: confirmation.distanceText,
+            earnings: parseFloat(confirmation.estimatedCost.toFixed(2)),
+            status: confirmation.status,
+            createdAt: confirmation.createdAt,
+          };
+
+          // Sort based on status
+          if (confirmation.status === ConfirmationStatus.PENDING) {
+            pending.push(requestItem);
+          } else if (confirmation.status === ConfirmationStatus.CONFIRMED) {
+            confirmed.push(requestItem);
+          }
+          // We ignore REJECTED status as they don't need to be displayed
+        });
+
+        setReceivedRequests(pending);
+        setWaitingRequests(confirmed);
+      };
+
+      processConfirmations();
+    }
+  }, [mechanicData]);
+
+  // Location permission and fetching
   useEffect(() => {
     (async () => {
       setIsLoading(true);
@@ -52,10 +186,9 @@ const Home = () => {
         setIsLoading(false);
         return;
       }
-      setHasPermission(true); 
+      setHasPermission(true);
       try {
         let location = await Location.getCurrentPositionAsync({});
-        console.log(location.coords);
         setLocation(location.coords);
 
         const address = await Location.reverseGeocodeAsync({
@@ -66,7 +199,7 @@ const Home = () => {
         setUserLocation({
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
-          address: `${address[0].name}, ${address[0].region}`,
+          address: address[0] ? `${address[0].name || ''}, ${address[0].region || ''}` : '',
         });
       } catch (error) {
         console.error("Error getting location:", error);
@@ -76,23 +209,32 @@ const Home = () => {
     })();
   }, []);
 
-  const handleAcceptRequest = (requestId) => {
-    setReceivedRequests(prevRequests => prevRequests.map(req =>
-      req.id === requestId ? { ...req, accepted: true } : req
-    ));
-    
-    // Move to waiting requests after accepting
-    const acceptedRequest = receivedRequests.find(req => req.id === requestId);
+  const handleAcceptRequest = (confirmationId: string) => {
+    updateConfirmationMutation.mutate({
+      confirmationId,
+      status: ConfirmationStatus.CONFIRMED
+    });
+
+    // Optimistic UI update - show acceptance immediately
+    const acceptedRequest = receivedRequests.find(req => req.id === confirmationId);
     if (acceptedRequest) {
-      setWaitingRequests(prev => [...prev, {...acceptedRequest, accepted: undefined}]);
-      setTimeout(() => {
-        setReceivedRequests(prevRequests => prevRequests.filter(req => req.id !== requestId));
-      }, 1000);
+      // Update UI immediately for better UX
+      setReceivedRequests(prev => prev.filter(req => req.id !== confirmationId));
+      setWaitingRequests(prev => [...prev, {
+        ...acceptedRequest,
+        status: ConfirmationStatus.CONFIRMED
+      }]);
     }
   };
 
-  const handleDeclineRequest = (requestId) => {
-    setReceivedRequests(prevRequests => prevRequests.filter(req => req.id !== requestId));
+  const handleDeclineRequest = (confirmationId: string) => {
+    updateConfirmationMutation.mutate({
+      confirmationId,
+      status: ConfirmationStatus.REJECTED
+    });
+
+    // Optimistic UI update - remove the request immediately
+    setReceivedRequests(prev => prev.filter(req => req.id !== confirmationId));
   };
 
   const renderReceivedRequests = () => {
@@ -103,36 +245,30 @@ const Home = () => {
           <View className="bg-white rounded-lg p-4 mb-4 shadow-sm flex flex-col gap-y-1">
             <Text className="text-xl font-JakartaBold">Issue: {item.issue}</Text>
             <View className="flex flex-row items-center justify-between">
-              <Text className="text-md font-JakartaMedium text-gray-500">Distance: {item.distance} km away</Text>
+              <Text className="text-md font-JakartaMedium text-gray-500">Distance: {item.distanceText}</Text>
               <Text className="text-md font-JakartaMedium text-gray-500">Earnings: ${item.earnings}</Text>
             </View>
             <View className="flex-row gap-x-3 px-2 justify-between mt-3 w-full">
               <TouchableOpacity
                 onPress={() => handleAcceptRequest(item.id)}
                 className="bg-green-500 w-1/2 px-12 py-3 rounded-full"
+                disabled={updateConfirmationMutation.isPending}
               >
                 <Text className="text-white text-center font-JakartaBold">Accept</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => handleDeclineRequest(item.id)}
                 className="bg-red-500 px-12 w-1/2 py-3 rounded-lg"
+                disabled={updateConfirmationMutation.isPending}
               >
                 <Text className="text-white text-center font-JakartaBold">Decline</Text>
               </TouchableOpacity>
             </View>
-            {item.accepted && (
-              <TouchableOpacity
-                onPress={() => router.push("/route")} 
-                className="bg-blue-500 mt-3 ml-2 py-3 rounded-xl"
-              >
-                <Text className="text-white text-center font-JakartaBold">See the Route</Text>
-              </TouchableOpacity>
-            )}
           </View>
         )}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={() => (
-          <Text className="text-md font-JakartaMedium text-gray-500 text-center mt-5">No received requests</Text>
+          <Text className="text-md font-JakartaMedium text-gray-500 text-center mt-5">No pending requests</Text>
         )}
         className="pb-20"
       />
@@ -147,15 +283,20 @@ const Home = () => {
           <View className="bg-white rounded-lg p-4 mb-4 shadow-sm flex flex-col gap-y-1">
             <Text className="text-xl font-JakartaBold">Issue: {item.issue}</Text>
             <View className="flex flex-row items-center justify-between">
-              <Text className="text-md font-JakartaMedium text-gray-500">Distance: {item.distance} km away</Text>
+              <Text className="text-md font-JakartaMedium text-gray-500">Distance: {item.distanceText || `${item.distance} km away`}</Text>
               <Text className="text-md font-JakartaMedium text-gray-500">Earnings: ${item.earnings}</Text>
             </View>
-            <Text className="text-sm italic text-amber-600 mt-2 text-center">Waiting for customer confirmation</Text>
+            <TouchableOpacity
+              onPress={() => router.push("/(app)/route")}
+              className="bg-blue-500 mt-3 py-3 rounded-xl"
+            >
+              <Text className="text-white text-center font-JakartaBold">Navigate to Customer</Text>
+            </TouchableOpacity>
           </View>
         )}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={() => (
-          <Text className="text-md font-JakartaMedium text-gray-500 text-center mt-5">No waiting requests</Text>
+          <Text className="text-md font-JakartaMedium text-gray-500 text-center mt-5">No confirmed requests</Text>
         )}
         className="pb-20"
       />
@@ -166,29 +307,7 @@ const Home = () => {
     <SafeAreaView className="bg-general-500 flex-1">
       <ScrollView className="px-5 pb-20 flex-1">
         <Text className="text-2xl font-JakartaExtraBold my-5">Welcome 👋</Text>
-        
-        {/* Current Order Section */}
-        {currentOrder && (
-          <View className="bg-blue-100 rounded-lg p-4 mb-4 shadow-md">
-            <Text className="text-xl font-JakartaBold mb-3">Current Order</Text>
-            <View className="flex flex-row justify-between mb-2">
-              <Text className="font-JakartaBold">Customer: {currentOrder.userName}</Text>
-              <Text className="font-JakartaBold">Issue: {currentOrder.issue}</Text>
-            </View>
-            <Text className="font-JakartaMedium mb-2">Address: {currentOrder.userAddress}</Text>
-            <View className="flex flex-row justify-between mb-2">
-              <Text className="font-JakartaMedium">Earnings: ${currentOrder.earnings}</Text>
-              <Text className="font-JakartaMedium text-green-600">In Progress</Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => router.push("/(app)/route")}
-              className="bg-blue-500 mt-2 py-3 rounded-xl"
-            >
-              <Text className="text-white text-center font-JakartaBold">Navigate to Customer</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-        
+
         {/* Current Location Section */}
         <Text className="text-xl font-JakartaBold mb-3">Your current location</Text>
         <View className="w-full h-[200px] rounded-lg bg-gray-200 overflow-hidden mb-5">
@@ -198,12 +317,7 @@ const Home = () => {
               <Text className="font-JakartaMedium mt-2">Loading your current location...</Text>
             </View>
           ) : location ? (
-            <Image
-              source={{
-                uri: `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=600&height=400&center=lonlat:${location.longitude},${location.latitude}&zoom=14&apiKey=${process.env.EXPO_PUBLIC_GEOAPIFY_API_KEY}`,
-              }}
-              className="w-full h-full"
-            />
+            <Map />
           ) : (
             <View className="flex-1 items-center justify-center">
               <Text className="font-JakartaMedium">Unable to get location</Text>
@@ -211,29 +325,45 @@ const Home = () => {
           )}
         </View>
 
+        {/* Loading indicator for mechanic data */}
+        {isLoadingMechanic && (
+          <View className="items-center justify-center py-3">
+            <ActivityIndicator size="small" color="#0000ff" />
+            <Text className="font-JakartaMedium mt-1">Updating requests...</Text>
+          </View>
+        )}
+
+        {/* Show mutation loading state */}
+        {updateConfirmationMutation.isPending && (
+          <View className="items-center justify-center py-3 bg-blue-100 rounded-lg mb-3">
+            <ActivityIndicator size="small" color="#0000ff" />
+            <Text className="font-JakartaMedium mt-1">Updating request status...</Text>
+          </View>
+        )}
+
         {/* Tabs for Requests */}
         <View className="flex-row mb-3">
-          <TouchableOpacity 
+          <TouchableOpacity
             className={`flex-1 py-3 ${activeTab === "received" ? "bg-blue-500" : "bg-gray-300"} rounded-l-lg`}
             onPress={() => setActiveTab("received")}
           >
             <Text className={`text-center font-JakartaBold ${activeTab === "received" ? "text-white" : "text-gray-700"}`}>
-              Received Requests
+              Pending Requests ({receivedRequests.length})
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             className={`flex-1 py-3 ${activeTab === "waiting" ? "bg-blue-500" : "bg-gray-300"} rounded-r-lg`}
             onPress={() => setActiveTab("waiting")}
           >
             <Text className={`text-center font-JakartaBold ${activeTab === "waiting" ? "text-white" : "text-gray-700"}`}>
-              Waiting for Confirmation
+              Confirmed Requests ({waitingRequests.length})
             </Text>
           </TouchableOpacity>
         </View>
-        
+
         {/* Render active tab content */}
         {activeTab === "received" ? renderReceivedRequests() : renderWaitingRequests()}
-      </ScrollView >
+      </ScrollView>
     </SafeAreaView>
   );
 };

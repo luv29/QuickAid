@@ -11,6 +11,9 @@ importers:
       '@expo/vector-icons':
         specifier: ^14.0.2
         version: 14.0.4
+      '@quick-aid/core':
+        specifier: 1.0.10
+        version: 1.0.10(typescript@5.8.2)
       '@react-native-async-storage/async-storage':
         specifier: ^2.1.2
         version: 2.1.2(react-native@0.76.5(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(@types/react@18.3.20)(react@18.3.1))
@@ -1130,6 +1133,21 @@ packages:
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
+
+  '@prisma/client@6.5.0':
+    resolution: {integrity: sha512-M6w1Ql/BeiGoZmhMdAZUXHu5sz5HubyVcKukbLs3l0ELcQb8hTUJxtGEChhv4SVJ0QJlwtLnwOLgIRQhpsm9dw==}
+    engines: {node: '>=18.18'}
+    peerDependencies:
+      prisma: '*'
+      typescript: '>=5.1.0'
+    peerDependenciesMeta:
+      prisma:
+        optional: true
+      typescript:
+        optional: true
+
+  '@quick-aid/core@1.0.10':
+    resolution: {integrity: sha512-p1JrYXUwQjm15GfgCJFTTZww07rfSlbN98y79ef98oooMQKOe9xguH/qE/FSA20J5qAONHe4uX6UqICuLKI9lQ==}
 
   '@radix-ui/react-compose-refs@1.0.0':
     resolution: {integrity: sha512-0KaSv6sx787/hK3eF53iOkiSLwAGlFMx5lotrqD2pTjB18KbybKoEIgkNZTKC60YECDQTKGTRcDBILwZVqVKvA==}
@@ -6535,6 +6553,19 @@ snapshots:
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
+
+  '@prisma/client@6.5.0(typescript@5.8.2)':
+    optionalDependencies:
+      typescript: 5.8.2
+
+  '@quick-aid/core@1.0.10(typescript@5.8.2)':
+    dependencies:
+      '@prisma/client': 6.5.0(typescript@5.8.2)
+      axios: 1.8.4
+    transitivePeerDependencies:
+      - debug
+      - prisma
+      - typescript
 
   '@radix-ui/react-compose-refs@1.0.0(react@18.3.1)':
     dependencies:

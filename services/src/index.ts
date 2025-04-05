@@ -11,6 +11,7 @@ import { BookingService } from "./services/booking.services.js";
 import { ReviewsService } from "./services/reviews.services.js";
 import { SosService } from "./services/sos.services.js";
 
+
 export enum AuthorizerType {
   USER,
   MECHANIC,
