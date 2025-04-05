@@ -4,6 +4,7 @@ import { ReviewsService } from "../reviews/reviews.service";
 import { DatabaseService } from "../database/database.service";
 
 const db = new DatabaseService()
+const rS = new ReviewsService(db);
 
 server.tool(
     "setrReviewAndRating",
@@ -27,8 +28,6 @@ server.tool(
             .describe("The comment given by the reviwer to who ever he is reviewing, if user does not give comment, ask him once whether he wants to give the comments.")
     },
     async ({serviceRequestId, reviewerType, rating, comment}) => {
-        const rS = new ReviewsService(db);
-
         try {
             const x = await rS.createReview({serviceRequestId, reviewerType, rating, comment});
             
@@ -38,6 +37,154 @@ server.tool(
                         type: "text",
                         text: JSON.stringify({
                             ...x
+                        })
+                    }
+                ]
+            }
+        } catch(e) {
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify({
+                            message: e.message
+                        })
+                    }
+                ]
+            }
+        }
+    }
+)
+
+server.tool(
+    "getReviewsByUser",
+    "returns all the reviews given by a user.",
+    {
+        userId: z
+            .string()
+            .describe("This is the mongoDB _id of the user whose reviews are to be fetched.")
+    },
+    async ({userId}) => {
+        try {
+            let res = await rS.getReviewsByUser(userId)
+            
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify({
+                            ...res
+                        })
+                    }
+                ]
+            }
+        } catch(e) {
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify({
+                            message: e.message
+                        })
+                    }
+                ]
+            }
+        }
+    }
+)
+
+server.tool(
+    "getReviewsByMechanic",
+    "returns all the reviews given by a mechanic.",
+    {
+        mechanicId: z
+            .string()
+            .describe("This is the mongoDB _id of the mechanic whose reviews are to be fetched.")
+    },
+    async ({ mechanicId }) => {
+        try {
+            let res = await rS.getReviewsByMechanic(mechanicId )
+            
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify({
+                            ...res
+                        })
+                    }
+                ]
+            }
+        } catch(e) {
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify({
+                            message: e.message
+                        })
+                    }
+                ]
+            }
+        }
+    }
+)
+
+server.tool(
+    "getReviewsAboutUser",
+    "returns all the reviews about a user.",
+    {
+        userId: z
+            .string()
+            .describe("This is the mongoDB _id of the user whose reviews are to be fetched.")
+    },
+    async ({userId}) => {
+        try {
+            let res = await rS.getReviewsAboutUser(userId)
+            
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify({
+                            ...res
+                        })
+                    }
+                ]
+            }
+        } catch(e) {
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify({
+                            message: e.message
+                        })
+                    }
+                ]
+            }
+        }
+    }
+)
+
+server.tool(
+    "getReviewsAboutMechanic",
+    "returns all the reviews given about a mechanic.",
+    {
+        mechanicId: z
+            .string()
+            .describe("This is the mongoDB _id of the mechanic whose reviews are to be fetched.")
+    },
+    async ({ mechanicId }) => {
+        try {
+            let res = await rS.getReviewsAboutMechanic(mechanicId )
+            
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify({
+                            ...res
                         })
                     }
                 ]
