@@ -1,10 +1,14 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { Prisma, SenderType } from '@prisma/client';
 import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
 export class ReviewsService {
-  constructor(private readonly db: DatabaseService) { }
+  constructor(private readonly db: DatabaseService) {}
 
   async createReview({
     serviceRequestId,
@@ -33,7 +37,9 @@ export class ReviewsService {
     });
 
     if (existingReview) {
-      throw new BadRequestException('A review from this reviewer already exists for this service request');
+      throw new BadRequestException(
+        'A review from this reviewer already exists for this service request',
+      );
     }
 
     return await this.db.review.create({
@@ -96,7 +102,7 @@ export class ReviewsService {
       },
     });
 
-    const serviceRequestIds = serviceRequests.map(req => req.id);
+    const serviceRequestIds = serviceRequests.map((req) => req.id);
 
     return await this.db.review.findMany({
       where: {
@@ -121,8 +127,8 @@ export class ReviewsService {
       },
     });
 
-    const serviceRequestIds = serviceRequests.map(req => req.id);
-    console.log(serviceRequestIds)
+    const serviceRequestIds = serviceRequests.map((req) => req.id);
+    console.log(serviceRequestIds);
 
     return await this.db.review.findMany({
       where: {
@@ -147,7 +153,7 @@ export class ReviewsService {
       },
     });
 
-    const serviceRequestIds = serviceRequests.map(req => req.id);
+    const serviceRequestIds = serviceRequests.map((req) => req.id);
 
     return await this.db.review.findMany({
       where: {
@@ -172,7 +178,7 @@ export class ReviewsService {
       },
     });
 
-    const serviceRequestIds = serviceRequests.map(req => req.id);
+    const serviceRequestIds = serviceRequests.map((req) => req.id);
 
     return await this.db.review.findMany({
       where: {

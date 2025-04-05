@@ -9,7 +9,9 @@ describe('DistanceCalculationService', () => {
       providers: [DistanceCalculationService],
     }).compile();
 
-    service = module.get<DistanceCalculationService>(DistanceCalculationService);
+    service = module.get<DistanceCalculationService>(
+      DistanceCalculationService,
+    );
   });
 
   it('should be defined', () => {

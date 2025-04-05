@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 
 enum AuthorizerType {
   USER,
+  MECHANIC,
 }
 
 @Controller('auth')

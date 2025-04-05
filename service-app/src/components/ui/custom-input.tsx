@@ -137,7 +137,7 @@ const CustomInput: React.FC<CustomInputProps> = ({
           <Checkbox
             value={checkboxChecked}
             onValueChange={onCheckboxChange}
-            color={checkboxChecked ? "#f59e0b" : undefined} // Orange when checked
+            color={checkboxChecked ? "#0286FF" : undefined} // Orange when checked
           />
           <Text className="ml-2 text-black">{checkboxLabel}</Text>
         </View>

@@ -31,6 +31,9 @@ import onboarding1 from "@/assets/images/onboarding1.png";
 import onboarding2 from "@/assets/images/onboarding2.png";
 import onboarding3 from "@/assets/images/onboarding3.png";
 import signUpCar from "@/assets/images/signup-car.png";
+import ob1 from "@/assets/images/ob1.jpeg";
+import ob2 from "@/assets/images/ob2.jpeg";
+
 
 export const images = {
   onboarding1,
@@ -41,6 +44,8 @@ export const images = {
   check,
   noResult,
   message,
+  ob1,
+  ob2,
 };
 
 export const icons = {
@@ -74,24 +79,24 @@ export const icons = {
 export const onboarding = [
   {
     id: 1,
-    title: "The perfect ride is just a tap away!",
+    title: "Breakdown? Help is a tap away!",
     description:
-      "Your journey begins with Ryde. Find your ideal ride effortlessly.",
-    image: images.onboarding1,
+      "With QwikAid, get roadside assistance instantly, no matter where you are!",
+    image: images.ob1,
   },
   {
     id: 2,
-    title: "Best car in your hands with Ryde",
+    title: "Find mechanics fast with QwikAid",
     description:
-      "Discover the convenience of finding your perfect ride with Ryde",
+      "Connect to nearby mechanics and track their arrival in real-time.",
     image: images.onboarding2,
   },
   {
     id: 3,
-    title: "Your ride, your way. Let's go!",
+    title: "Safe and available 24/7 —let’s roll!",
     description:
-      "Enter your destination, sit back, and let us take care of the rest.",
-    image: images.onboarding3,
+      "Use SOS, offline support, and multilingual features for a secure journey.",
+    image: images.ob2,
   },
 ];
 

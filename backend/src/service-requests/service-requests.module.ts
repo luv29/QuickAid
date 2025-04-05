@@ -4,7 +4,7 @@ import { ServiceRequestsController } from './service-requests.controller';
 import { DatabaseModule } from 'src/database/database.module';
 
 @Module({
-  imports : [DatabaseModule],
+  imports: [DatabaseModule],
   controllers: [ServiceRequestsController],
   providers: [ServiceRequestsService],
 })

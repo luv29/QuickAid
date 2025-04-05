@@ -4,6 +4,6 @@ import { DatabaseModule } from 'src/database/database.module';
 
 @Module({
   imports: [DatabaseModule],
-  providers: [MailService]
+  providers: [MailService],
 })
 export class MailModule {}

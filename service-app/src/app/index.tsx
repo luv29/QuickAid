@@ -1,49 +1,64 @@
-import { useEffect } from 'react';
-import { Redirect, router } from 'expo-router';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import LottieView from 'lottie-react-native';
-import tailwind from 'twrnc';
+import { Redirect } from "expo-router";
+import { useEffect, useState } from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import LottieView from "lottie-react-native";
+import CustomSafeAreaView from "@/src/components/ui/custom-safeareaview";
+import { secureStore } from "@/src/secure-store";
+import { AUTH_TOKEN_KEY } from "@/src/constants/secureStoreKeys";
+import { useAppInitialization } from "@/src/hooks/useAppInitialisation";
 
-import CustomSafeAreaView from '@/src/components/ui/custom-safeareaview';
-import { useAppInitialization } from '@/src/hooks/useAppInitialisation';
-import { useAuthStore } from '@/src/state/authStorage';
+const RootLoading = () => {
+  const [authState, setAuthState] = useState<{
+    isLoading: boolean;
+    hasToken: boolean | null;
+  }>({
+    isLoading: true,
+    hasToken: null,
+  });
 
-
-const Index = () => {
+  // Initialize the app
   useAppInitialization();
-  const { user, isAuthenticated, isLoading, refreshUser } = useAuthStore();
-
-  const refresh = async () => {
-    if (user?.id) {
-      await refreshUser(user.id);
-      router.replace('/(app)');
-    }
-  };
 
   useEffect(() => {
-    if (isAuthenticated && user) {
-      refresh();
-    }
-  }, [isAuthenticated, user]);
+    const checkToken = async () => {
+      try {
+        const token = await secureStore?.getItem(AUTH_TOKEN_KEY);
+        setAuthState({
+          isLoading: false,
+          hasToken: !!token,
+        });
+      } catch (error) {
+        console.error('Error checking token:', error);
+        setAuthState({
+          isLoading: false,
+          hasToken: false,
+        });
+      }
+    };
 
-  if (!isAuthenticated) {
+    checkToken();
+  }, []);
+
+  if (authState.isLoading) {
+    return (
+      <SafeAreaProvider>
+        <CustomSafeAreaView className="flex-1 bg-white items-center justify-center">
+          <LottieView
+            autoPlay
+            style={{ width: 32, height: 32 }}
+            loop={true}
+            source={require("@/assets/lottie/loader-circle.json")}
+          />
+        </CustomSafeAreaView>
+      </SafeAreaProvider>
+    );
+  }
+
+  if (!authState.hasToken) {
     return <Redirect href="/(auth)/sign-in" />;
   }
 
-  return (
-    <SafeAreaProvider>
-      <CustomSafeAreaView 
-        style={tailwind`flex-1 bg-white items-center justify-center`}
-      >
-        <LottieView
-          autoPlay
-          style={tailwind`w-8 h-8`}
-          loop={true}
-          source={require('@/assets/lottie/loader-circle.json')}
-        />
-      </CustomSafeAreaView>
-    </SafeAreaProvider>
-  );
+  return <Redirect href="/(app)" />;
 };
 
-export default Index;
+export default RootLoading;

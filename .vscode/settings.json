@@ -3,6 +3,12 @@
         "autoincrement",
         "dsphere",
         "Geospatial",
-        "Initialisation"
+        "Indecator",
+        "Initialisation",
+        "Networkinfostatus",
+        "pincode",
+        "Qwik",
+        "safeareaview",
+        "useoffline"
     ]
 }

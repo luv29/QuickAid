@@ -4,7 +4,7 @@ import {
   OnModuleDestroy,
   Logger,
 } from '@nestjs/common';
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient, Prisma, ServiceType } from '@prisma/client';
 
 @Injectable()
 export class PrismaService
@@ -34,7 +34,6 @@ export class PrismaService
       });
       this.logger.log('Geospatial index created successfully');
     } catch (error) {
-      // If index already exists, this is fine
       if (error.message && error.message.includes('already exists')) {
         this.logger.log('Geospatial index already exists');
       } else {

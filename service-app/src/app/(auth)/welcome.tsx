@@ -1,13 +1,10 @@
-import CustomButton from "@/src/components/ui/custom-button";
-import { onboarding } from "@/src/constants";
 import { router } from "expo-router";
-import { SetStateAction, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Swiper from "react-native-swiper";
-
-
-
+import CustomButton from "@/src/components/CustomButton";
+import { onboarding } from "@/src/constants";
 
 const Home = () => {
   const swiperRef = useRef<Swiper>(null);
@@ -35,7 +32,7 @@ const Home = () => {
         activeDot={
           <View className="w-[32px] h-[4px] mx-1 bg-[#0286FF] rounded-full" />
         }
-        onIndexChanged={(index: SetStateAction<number>) => setActiveIndex(index)}
+        onIndexChanged={(index) => setActiveIndex(index)}
       >
         {onboarding.map((item) => (
           <View key={item.id} className="flex items-center justify-center p-5">
@@ -57,16 +54,14 @@ const Home = () => {
       </Swiper>
 
       <CustomButton
+        title={isLastSlide ? "Get Started" : "Next"}
         onPress={() =>
           isLastSlide
             ? router.replace("/(auth)/sign-in")
             : swiperRef.current?.scrollBy(1)
         }
-        className="w-11/12 mt-10 mb-5"
-      >
-        {isLastSlide ? "Get Started" : "Next"}
-      </CustomButton>
-      
+        className="w-10/12 mt-10 mb-5 mx-auto py-4  "
+      />
     </SafeAreaView>
   );
 };

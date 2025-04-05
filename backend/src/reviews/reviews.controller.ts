@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Param, Get, Put, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Param,
+  Get,
+  Put,
+  Delete,
+} from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { SenderType } from '@prisma/client';
 
@@ -8,7 +16,8 @@ export class ReviewsController {
 
   @Post()
   async createReview(
-    @Body() createReviewDto: {
+    @Body()
+    createReviewDto: {
       serviceRequestId: string;
       reviewerType: SenderType;
       rating: number;
@@ -21,12 +30,16 @@ export class ReviewsController {
   @Put('update/:reviewId')
   async updateReview(
     @Param('reviewId') reviewId: string,
-    @Body() updateReviewDto: {
+    @Body()
+    updateReviewDto: {
       rating?: number;
       comment?: string;
     },
   ) {
-    return await this.reviewsService.updateReview({ reviewId, ...updateReviewDto });
+    return await this.reviewsService.updateReview({
+      reviewId,
+      ...updateReviewDto,
+    });
   }
 
   @Get('user/:userId')
@@ -50,8 +63,12 @@ export class ReviewsController {
   }
 
   @Get('service-request/:serviceRequestId')
-  async getReviewsByServiceRequest(@Param('serviceRequestId') serviceRequestId: string) {
-    return await this.reviewsService.getReviewsByServiceRequest(serviceRequestId);
+  async getReviewsByServiceRequest(
+    @Param('serviceRequestId') serviceRequestId: string,
+  ) {
+    return await this.reviewsService.getReviewsByServiceRequest(
+      serviceRequestId,
+    );
   }
 
   @Delete('delete/:reviewId')

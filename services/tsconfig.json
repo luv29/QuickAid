@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",                  // Target JavaScript version
+    "module": "ESNext",                 // Use ESNext modules
+    "moduleResolution": "node",         // Resolve modules like Node.js
+    "declaration": true,                // Generate .d.ts files
+    "declarationDir": "./dist",         // Output directory for .d.ts files
+    "outDir": "./dist",                 // Output directory for compiled JS
+    "rootDir": "./src",                 // Root directory of source files
+    "strict": true,                     // Enable strict type checking
+    "esModuleInterop": true             // Enable ES module interop
+  },
+  "include": ["src/**/*"],              // Include all files in the src folder
+  "exclude": ["node_modules", "dist"]   // Exclude these folders
+}

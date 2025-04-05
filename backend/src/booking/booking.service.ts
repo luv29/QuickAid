@@ -34,6 +34,12 @@ interface CreateServiceRequestDto {
   longitude: number;
   description?: string;
   address?: string;
+  Car?: {
+    make: string;
+    model: string;
+    year: number;
+    licensePlate: string;
+  }[];
 }
 
 @Injectable()
@@ -57,6 +63,16 @@ export class BookingService {
         description: data.description,
         address: data.address,
         status: ServiceStatus.REQUESTED,
+        car: data.Car
+          ? {
+              create: data.Car.map((car) => ({
+                make: car.make,
+                model: car.model,
+                year: car.year,
+                licensePlate: car.licensePlate,
+              })),
+            }
+          : undefined,
       },
     });
 
@@ -68,8 +84,7 @@ export class BookingService {
         data.serviceType,
       );
 
-
-    console.log("this is nearby mechanics",JSON.stringify(nearbyMechanics)); 
+    console.log('this is nearby mechanics', JSON.stringify(nearbyMechanics));
 
     if (nearbyMechanics.length === 0) {
       // Update service request status to NO_MECHANICS_FOUND
@@ -91,8 +106,8 @@ export class BookingService {
         await this.distanceCalculationService.calculateDistance(
           data.latitude,
           data.longitude,
-          mechanic.latitude,
-          mechanic.longitude,
+          mechanic.address.lat,
+          mechanic.address.lng,
         );
 
       console.log('this is ****************************', distanceResult);
@@ -112,7 +127,6 @@ export class BookingService {
       );
 
       console.log('this is **************************** cost', cost);
-      
 
       mechanicOffers.push({
         id: mechanic.id,
@@ -147,14 +161,14 @@ export class BookingService {
       });
     }
 
-    // 5. Send notifications to the mechanics
-    await this.notificationService.sendServiceRequestToMechanics(
-      serviceRequest.id,
-      mechanicOffers.map((offer) => offer.id),
-      data.serviceType,
-      mechanicOffers[0].distance.text, // Use the closest mechanic's distance for simplicity
-      mechanicOffers[0].cost, // Use the closest mechanic's cost for simplicity
-    );
+    // // 5. Send notifications to the mechanics
+    // await this.notificationService.sendServiceRequestToMechanics(
+    //   serviceRequest.id,
+    //   mechanicOffers.map((offer) => offer.id),
+    //   data.serviceType,
+    //   mechanicOffers[0].distance.text, // Use the closest mechanic's distance for simplicity
+    //   mechanicOffers[0].cost, // Use the closest mechanic's cost for simplicity
+    // );
 
     return {
       serviceRequestId: serviceRequest.id,
@@ -287,12 +301,12 @@ export class BookingService {
       },
     });
 
-    // Send confirmation notification to the mechanic
-    await this.notificationService.sendBookingConfirmationToMechanic(
-      mechanicId,
-      serviceRequestId,
-      serviceRequest.serviceType,
-    );
+    // // Send confirmation notification to the mechanic
+    // await this.notificationService.sendBookingConfirmationToMechanic(
+    //   mechanicId,
+    //   serviceRequestId,
+    //   serviceRequest.serviceType,
+    // );
 
     // Create a chat room for communication
     const chat = await this.prisma.chat.create({
