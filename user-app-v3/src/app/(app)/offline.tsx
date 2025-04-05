@@ -1,53 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView, FlatList, Linking, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView, FlatList, Linking, Platform, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { icons } from '@/src/constants';
 import { useLocationStore } from '@/src/store';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNetworkStatus } from '@/src/hooks/useNetworkinfostatus';
+import { useOfflineMechanics } from '@/src/hooks/useOfflineMechanics'; // Import the new hook
 
-const dummyMechanics = [
-  {
-    id: '1',
-    name: 'John Smith',
-    photo: require('@/assets/images/Engine.jpg'),
-    rating: 4.8,
-    distance: 1.2,
-    phone: '+1234567890'
-  },
-  {
-    id: '2',
-    name: 'Mike Johnson',
-    photo: require('@/assets/images/Towing.jpg'),
-    rating: 4.6,
-    distance: 2.5,
-    phone: '+1234567891'
-  },
-  {
-    id: '3',
-    name: 'Sarah Williams',
-    photo: require('@/assets/images/fuel.jpg'),
-    rating: 4.9,
-    distance: 3.1,
-    phone: '+1234567892'
-  },
-  {
-    id: '4',
-    name: 'David Brown',
-    photo: require('@/assets/images/idk1.jpg'),
-    rating: 4.7,
-    distance: 3.8,
-    phone: '+1234567893'
-  },
-  {
-    id: '5',
-    name: 'Lisa Chen',
-    photo: require('@/assets/images/idk2.jpg'),
-    rating: 4.5,
-    distance: 4.2,
-    phone: '+1234567894'
-  }
-];
+interface Mechanic {
+  id: string;
+  name: string;
+  phoneNumber: string;
+  distance: number;
+  // Using a placeholder image since the actual mechanic data doesn't include photos
+  photo?: any;
+  rating?: number;
+}
 
 interface EmergencyContact {
   id: string;
@@ -110,11 +78,23 @@ const troubleshootingGuides: TroubleshootingGuide[] = [
   },
 ];
 
+// Sample mechanic photos to match with real data
+const mechanicPhotos = [
+  require('@/assets/images/Engine.jpg'),
+  require('@/assets/images/Towing.jpg'),
+  require('@/assets/images/fuel.jpg'),
+  require('@/assets/images/idk1.jpg'),
+  require('@/assets/images/idk2.jpg'),
+];
+
 const OfflinePage = () => {
   // Use the network context instead of local state
   const { isConnected, setNetworkStatus } = useNetworkStatus();
   const [selectedGuide, setSelectedGuide] = useState<TroubleshootingGuide | null>(null);
-  const { userLocation } = useLocationStore();
+  const { userAddress } = useLocationStore();
+
+  // Use our offline mechanics hook to get cached mechanic data
+  const { data: mechanics, isLoading, isError, isOffline, forceFetch } = useOfflineMechanics();
 
   // Set local display state based on the global network state
   const [isOnline, setIsOnline] = useState(isConnected);
@@ -130,6 +110,8 @@ const OfflinePage = () => {
     setNetworkStatus(newStatus); // Update the global network status
 
     if (newStatus) {
+      // Try to fetch new data when toggling online
+      forceFetch();
       // Navigate back to home tab when toggled to online
       router.replace('/(app)/(tabs)/home');
     }
@@ -161,44 +143,45 @@ const OfflinePage = () => {
       .catch(err => console.error('An error occurred', err));
   };
 
-  interface Mechanic {
-    id: string;
-    name: string;
-    photo: any;
-    rating: number;
-    distance: number;
-    phone: string;
-  }
+  const renderMechanicCard = ({ item, index }: { item: Mechanic, index: number }) => {
+    // Use a photo from our array based on index, cycling through available photos
+    const photoIndex = index % mechanicPhotos.length;
+    const photo = mechanicPhotos[photoIndex];
 
-  const renderMechanicCard = ({ item }: { item: Mechanic }) => (
-    <View className="w-64 mr-4 bg-white rounded-xl shadow-xs">
-      <View className="p-4">
-        <View className="flex-row items-center">
-          <Image
-            source={item.photo}
-            className="w-16 h-16 rounded-full bg-gray-200"
-          />
-          <View className="ml-3 flex-1">
-            <Text className="text-lg font-JakartaBold">{item.name}</Text>
-            <View className="flex-row items-center">
-              <Image source={icons.star} className="w-4 h-4 mr-1" />
-              <Text className="text-sm font-JakartaMedium">{item.rating}</Text>
+    // Default rating if not present in the data
+    const rating = item.rating || (4.5 + (index % 5) / 10);
+
+    return (
+      <View className="w-64 mr-4 h-44 bg-white rounded-xl shadow-xs relative">
+        <View className="p-4 flex flex-col h-full">
+          <View className="flex-row items-center">
+            <Image
+              source={photo}
+              className="w-16 h-16 rounded-full bg-gray-200"
+            />
+            <View className="ml-3 flex-1">
+              <Text className="text-lg font-JakartaBold">{item.name}</Text>
+              <View className="flex-row items-center">
+                <Image source={icons.star} className="w-4 h-4 mr-1" />
+                <Text className="text-sm font-JakartaMedium">{rating.toFixed(1)}</Text>
+              </View>
+              <Text className="text-sm text-gray-500 font-JakartaRegular">
+                {item.distance.toFixed(1)} km away
+              </Text>
             </View>
-            <Text className="text-sm text-gray-500 font-JakartaRegular">
-              {item.distance} km away
-            </Text>
           </View>
+          <View className="flex-1" /> {/* Spacer to push button to bottom */}
+          <TouchableOpacity
+            onPress={() => handleCall(item.phoneNumber)}
+            className="mt-2 bg-general-400 rounded-full py-2 items-center flex-row justify-center absolute bottom-4 left-4 right-4"
+          >
+            <Image source={icons.target} className="w-6 h-6 mr-2" tintColor="white" />
+            <Text className="text-white font-JakartaMedium">Call Mechanic</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          onPress={() => handleCall(item.phone)}
-          className="mt-3 bg-general-400 rounded-full py-2 items-center flex-row justify-center"
-        >
-          <Image source={icons.target} className="w-6 h-6 mr-2" tintColor="white" />
-          <Text className="text-white font-JakartaMedium">Call Mechanic</Text>
-        </TouchableOpacity>
       </View>
-    </View>
-  );
+    );
+  };
 
   const renderEmergencyContact = ({ item }: { item: EmergencyContact }) => (
     <TouchableOpacity
@@ -289,22 +272,41 @@ const OfflinePage = () => {
           <View className="flex-1">
             <Text className="text-sm text-gray-500 font-JakartaRegular">Last known location</Text>
             <Text className="text-base font-JakartaMedium">
-              {userLocation?.address || "No location data available"}
+              {userAddress || "No location data available"}
             </Text>
           </View>
         </View>
 
-        {/* Nearby mechanics section */}
+        {/* Nearby mechanics section - now using real mechanic data */}
         <View className="mt-1 p-4">
           <Text className="text-xl font-JakartaBold mb-3">Nearby Mechanics</Text>
-          <FlatList
-            data={dummyMechanics}
-            renderItem={renderMechanicCard}
-            keyExtractor={item => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingRight: 16 }}
-          />
+          {isLoading ? (
+            <View className="h-32 justify-center items-center">
+              <ActivityIndicator size="large" color="#0000ff" />
+            </View>
+          ) : isError ? (
+            <View className="h-32 justify-center items-center">
+              <Text className="text-red-500 font-JakartaMedium">Could not load mechanics data</Text>
+            </View>
+          ) : mechanics && mechanics.length > 0 ? (
+            <FlatList
+              data={mechanics}
+              renderItem={({ item, index }) => renderMechanicCard({ item, index })}
+              keyExtractor={item => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingRight: 16 }}
+            />
+          ) : (
+            <View className="h-32 justify-center items-center">
+              <Text className="text-gray-500 font-JakartaMedium">No mechanics data available</Text>
+            </View>
+          )}
+          {isOffline && (
+            <Text className="text-sm italic text-gray-500 mt-1 font-JakartaRegular">
+              Using cached mechanics data
+            </Text>
+          )}
         </View>
 
         {/* Emergency contacts section */}

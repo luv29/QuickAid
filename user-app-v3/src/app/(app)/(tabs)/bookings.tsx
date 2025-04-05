@@ -221,11 +221,10 @@ const ServiceRequestHistory = () => {
           payment: true
         }
       });
-      console.log("Service Requests:", response.data);
 
       return response.data || [];
     },
-    enabled: !!user?.id
+    enabled: !!user?.id // Only run query if user is logged in
   });
 
   return (

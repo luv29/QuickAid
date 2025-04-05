@@ -45,7 +45,6 @@ const Chatbot = () => {
       { id: "payment", title: "Make Payment", disabled: !isMechanicAssigned },
       { id: "rating", title: "Rate Mechanic", disabled: !isMechanicAssigned }
     ];
-    
     return [...baseOptions, ...mechanicOptions];
   };
   

@@ -33,7 +33,18 @@ import onboarding3 from "@/assets/images/onboarding3.png";
 import signUpCar from "@/assets/images/signup-car.png";
 import ob1 from "@/assets/images/ob1.jpeg";
 import ob2 from "@/assets/images/ob2.jpeg";
-
+import Engine from "@/assets/images/Engine.jpg";
+import flatTyre from "@/assets/images/Flattyre.jpg";
+import service3 from "@/assets/images/idk1.jpg";
+import service1 from "@/assets/images/idk2.jpg";
+import service2 from "@/assets/images/idk3.jpg";
+import Towing from "@/assets/images/Towing.jpg";
+import fuel from "@/assets/images/fuel.jpg";
+import onboard1 from "@/assets/images/onboard2.jpg";
+import onboard2 from "@/assets/images/onboard3.jpg";
+import onboard3 from "@/assets/images/onboard4.jpg";
+import onboard4 from "@/assets/images/onboardingimg1.jpg";
+import QwikAidLogo from "@/assets/images/QwikAidLogo.jpeg";
 
 export const images = {
   onboarding1,
@@ -46,6 +57,17 @@ export const images = {
   message,
   ob1,
   ob2,
+  Engine,
+  onboard1,
+  onboard2,
+  onboard3,
+  onboard4,
+  service1,
+  service2,
+  service3,
+  Towing,
+  fuel,
+  QwikAidLogo,
 };
 
 export const icons = {
