@@ -4,9 +4,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
-  ScrollView,
-  TouchableWithoutFeedback,
-  Keyboard,
 } from "react-native";
 import { Redirect, router } from "expo-router";
 import ScreenHeader from "@/src/components/ui/screen-header";
@@ -93,86 +90,72 @@ const AddressScreen: React.FC = () => {
     coordinates.lat !== 0 &&
     coordinates.lng !== 0;
 
-  // This function dismisses the keyboard when tapping outside inputs
-  const dismissKeyboard = () => {
-    Keyboard.dismiss();
-  };
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1 bg-white"
-      keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
     >
-      <TouchableWithoutFeedback onPress={dismissKeyboard}>
-        <View className="flex-1 bg-white pt-12">
-          <ScreenHeader title={ONBOARDING_STEPS.ADDRESS.heading} />
+      <View className="flex-1 bg-white pt-12 ">
+        <ScreenHeader title={ONBOARDING_STEPS.ADDRESS.heading} />
 
-          <ScrollView 
-            className="px-8 flex-1"
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            <StepIndicator
-              currentStep={ONBOARDING_STEPS.ADDRESS.step}
-              totalSteps={TOTAL_ONBOARDING_STEPS}
-            />
+        <View className="px-8 flex-1">
+          <StepIndicator
+            currentStep={ONBOARDING_STEPS.ADDRESS.step}
+            totalSteps={TOTAL_ONBOARDING_STEPS}
+          />
 
-            <View className="mt-6 pb-20">
-              <View className="mb-5">
-                <CustomLabel label="Set GPS Location" compulsory={true} />
+          <View className="mt-6">
+            <View className="mb-5">
+              <CustomLabel label="Set GPS Location" compulsory={true} />
 
-                <TouchableOpacity
-                  onPress={fetchCurrentCoordinates}
-                  className={`flex-row items-center mt-2 ${
-                    coordinates.lat !== 0 && coordinates.lng !== 0
-                      ? "bg-green-200"
-                      : "bg-gray-200"
+              <TouchableOpacity
+                onPress={fetchCurrentCoordinates}
+                className={`flex-row items-center mt-2 ${coordinates.lat !== 0 && coordinates.lng !== 0
+                    ? "bg-green-200"
+                    : "bg-gray-200"
                   } rounded-lg p-4 gap-2`}
-                >
-                  <FontAwesome6
-                    name={coordinates.lat !== 0 ? "circle-check" : "location-crosshairs"}
-                    size={24}
-                    color={coordinates.lat !== 0 ? "green" : "black"}
-                  />
-                  <CustomText
-                    className={`text-lg font-medium ${
-                      coordinates.lat !== 0 ? "text-green-800" : ""
+              >
+                <FontAwesome6
+                  name={coordinates.lat !== 0 ? "circle-check" : "location-crosshairs"}
+                  size={24}
+                  color={coordinates.lat !== 0 ? "green" : "black"}
+                />
+                <CustomText
+                  className={`text-lg font-medium ${coordinates.lat !== 0 ? "text-green-800" : ""
                     }`}
-                  >
-                    {coordinates.lat !== 0
-                      ? "GPS Location is set"
-                      : "Set GPS Location"}
-                  </CustomText>
-                </TouchableOpacity>
-              </View>
-
-              <CustomInput
-                value={building}
-                onChangeText={setBuilding}
-                placeholder="Building, Street, Area"
-                label="Garage Address"
-                compulsory={true}
-              />
-              <CustomInput
-                value={city}
-                onChangeText={setCity}
-                placeholder="City"
-                label="City"
-                compulsory={true}
-              />
-              <CustomInput
-                value={pincode}
-                onChangeText={setPincode}
-                placeholder="Pincode"
-                label="Pincode"
-                compulsory={true}
-                keyboardType="numeric"
-              />
+                >
+                  {coordinates.lat !== 0
+                    ? "GPS Location is set"
+                    : "Set GPS Location"}
+                </CustomText>
+              </TouchableOpacity>
             </View>
-          </ScrollView>
 
-          <View className="px-8 mt-auto mb-8">
+            <CustomInput
+              value={building}
+              onChangeText={setBuilding}
+              placeholder="Building, Street, Area"
+              label="Address"
+              compulsory={true}
+            />
+            <CustomInput
+              value={city}
+              onChangeText={setCity}
+              placeholder="City"
+              label="City"
+              compulsory={true}
+            />
+            <CustomInput
+              value={pincode}
+              onChangeText={setPincode}
+              placeholder="Pincode"
+              label="Pincode"
+              compulsory={true}
+              keyboardType="numeric"
+            />
+          </View>
+
+          <View className="mt-auto mb-8">
             <CustomButton
               onPress={handleNext}
               disabled={!isFormValid || isPending}
@@ -182,7 +165,7 @@ const AddressScreen: React.FC = () => {
             </CustomButton>
           </View>
         </View>
-      </TouchableWithoutFeedback>
+      </View>
     </KeyboardAvoidingView>
   );
 };

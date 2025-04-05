@@ -38,7 +38,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
   const isDisabled = disabled || isLoading;
 
   const buttonStyle = `px-4 py-4 rounded-2xl ${
-    isDisabled ? "bg-disabled" : "bg-[#0286FF]"
+    isDisabled ? "bg-disabled" : "bg-primary"
   } ${className}`;
 
   const textStyle = `text-center font-medium ${
