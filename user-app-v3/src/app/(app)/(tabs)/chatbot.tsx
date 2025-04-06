@@ -23,25 +23,27 @@ import { useMechanicStore } from "@/src/state/mechnic";
 import { paymentService } from "@/src/service";
 import { useLocationStore } from "@/src/store";
 import { router } from "expo-router";
+import { StripeProvider } from "@stripe/stripe-react-native";
+import Payment from "@/src/components/Payment";
 
 const API_URL = 'https://4zbptm0f-8000.inc1.devtunnels.ms/';
 
 // API call function using axios
-const sendChatMessage = async ({ 
-  chatId, 
-  serviceRequestId, 
-  userId, 
+const sendChatMessage = async ({
+  chatId,
+  serviceRequestId,
+  userId,
   prompt,
   userLatitude,
-  userLongitude 
+  userLongitude
 }) => {
   const defaultLatitude = 21.0942; // Dumas Beach latitude
   const defaultLongitude = 72.7132; // Dumas Beach longitude
-  
+
   // Use provided coordinates if available, otherwise use Dumas Beach coordinates
   const latitude = userLatitude !== undefined ? userLatitude : defaultLatitude;
   const longitude = userLongitude !== undefined ? userLongitude : defaultLongitude;
-  
+
   const response = await axios.post(API_URL, {
     chat_id: chatId,
     serviceRequestId,
@@ -50,7 +52,7 @@ const sendChatMessage = async ({
     latitude,
     longitude,
   });
-  
+
   console.log(response.data);
   return response.data;
 };
@@ -124,8 +126,8 @@ const Chatbot = ({ route }) => {
 
   // Initialize chat with welcome message and create unique chat ID
   useEffect(() => {
-    // const newChatId = user?.id || uuid.v4();
-    const newChatId = uuid.v4();
+    const newChatId = user?.id || uuid.v4();
+    // const newChatId = uuid.v4();
     setChatId(newChatId);
 
     const welcomeMessage = {
@@ -152,10 +154,10 @@ const Chatbot = ({ route }) => {
   const { data: mechanicData, isLoading: isLoadingMechanic } = useQuery({
     queryKey: ['serviceRequests', mechanicOffersWithRequests],
     queryFn: async () => {
-      if (mechanicOffersWithRequests.length === 0) return null;
+      if (mechanicOffersWithRequests?.length === 0) return null;
 
       let attempts = 0;
-      const maxAttempts = 20;
+      const maxAttempts = 50;
       let foundRequest = null;
 
       while (!foundRequest && attempts < maxAttempts) {
@@ -181,11 +183,11 @@ const Chatbot = ({ route }) => {
               timestamp: new Date().toISOString(),
               chatId,
               mechanic1: {
-                name: mechanic.data.name,
-                image: mechanic.data.profileImage || "https://randomuser.me/api/portraits/men/32.jpg",
-                rating: mechanic.data.rating || 4.7,
+                name: mechanic.data?.name || "Emergency Mechanic Services",
+                image: mechanic.data?.profileImage || "https://randomuser.me/api/portraits/men/32.jpg",
+                rating: mechanic.data?.rating || 4.7,
                 eta: `${Math.round(mechanic.data.duration?.value / 60) || 15} mins`,
-                cost: mechanic.data.cost || "500-600"
+                cost: mechanic.data?.cost || "80-100"
               }
             };
 
@@ -199,13 +201,13 @@ const Chatbot = ({ route }) => {
         // Wait before trying the next batch
         await new Promise(resolve => setTimeout(resolve, 3000));
         attempts++;
-        console.log(`Polling attempt ${attempts}: checked ${mechanicOffersWithRequests.length} requests, no mechanicId found yet`);
+        console.log(`Polling attempt ${attempts}: checked ${mechanicOffersWithRequests?.length} requests, no mechanicId found yet`);
       }
 
       return foundRequest;
     },
     refetchInterval: 30000, // Continue to refetch every 30 seconds
-    enabled: mechanicOffersWithRequests.length > 0, // Only run if we have requests to check
+    enabled: mechanicOffersWithRequests?.length > 0, // Only run if we have requests to check
     retry: false,
   });
 
@@ -240,7 +242,7 @@ const Chatbot = ({ route }) => {
 
 
         // Add a message about available mechanics
-        addMessage(`I found ${offers.length} mechanics available near you. The AI will select best for you.`, "bot");
+        addMessage(`I found ${offers?.length} mechanics available near you. The AI will select best for you.`, "bot");
         break;
 
       case "getReviewsByUser":
@@ -248,7 +250,7 @@ const Chatbot = ({ route }) => {
         const reviews = responseItem.content;
         let reviewMessage = "Here are your past reviews:\n\n";
 
-        if (Object.keys(reviews).length === 0) {
+        if (Object.keys(reviews)?.length === 0) {
           reviewMessage = "You haven't submitted any reviews yet.";
         } else {
           Object.values(reviews).forEach((review, index) => {
@@ -602,238 +604,248 @@ const Chatbot = ({ route }) => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      {/* Header */}
-      <View className="flex-row items-center p-4 border-b border-gray-200 bg-white">
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          className="p-2 my-auto"
-        >
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text className="text-xl font-bold ml-2">QwikAid Assistance</Text>
-      </View>
+    <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY!}
+      merchantIdentifier="merchant.com.QwikAid"
+      urlScheme="myapp">
+      <SafeAreaView className="flex-1 bg-white">
+        {/* Header */}
+        <View className="flex-row items-center p-4 border-b border-gray-200 bg-white">
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            className="p-2 my-auto"
+          >
+            <Ionicons name="arrow-back" size={24} color="black" />
+          </TouchableOpacity>
+          <Text className="text-xl font-bold ml-2">QwikAid Assistance</Text>
+        </View>
 
-      {/* Chat Messages */}
-      <FlatList
-        ref={scrollViewRef}
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={item => item.id}
-        contentContainerStyle={{ padding: 15 }}
-        showsVerticalScrollIndicator={false}
-        ListFooterComponent={() => (
-          <>
-            {(chatMutation.isPending || isLoading) && (
-              <View className="self-center my-4">
-                <ActivityIndicator size="small" color="#0066CC" />
-              </View>
-            )}
+        {/* Chat Messages */}
+        <FlatList
+          ref={scrollViewRef}
+          data={messages}
+          renderItem={renderMessage}
+          keyExtractor={item => item.id}
+          contentContainerStyle={{ padding: 15 }}
+          showsVerticalScrollIndicator={false}
+          ListFooterComponent={() => (
+            <>
+              {(chatMutation.isPending || isLoading) && (
+                <View className="self-center my-4">
+                  <ActivityIndicator size="small" color="#0066CC" />
+                </View>
+              )}
 
-            {showServiceButtons && (
-              <View className="flex-row flex-wrap justify-center my-4">
-                {serviceTypes.map((service) => (
-                  <TouchableOpacity
-                    key={service.id}
-                    className="bg-gray-200 m-1 px-4 py-2 rounded-full"
-                    onPress={() => handleServiceTypeSelect(service)}
-                  >
-                    <Text>{service.title}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
+              {showServiceButtons && (
+                <View className="flex-row flex-wrap justify-center my-4">
+                  {serviceTypes.map((service) => (
+                    <TouchableOpacity
+                      key={service.id}
+                      className="bg-gray-200 m-1 px-4 py-2 rounded-full"
+                      onPress={() => handleServiceTypeSelect(service)}
+                    >
+                      <Text>{service.title}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
 
-            {showMechanicOffers && (
-              <View className="my-4">
-                {mechanicOffers.map((mechanic) => (
-                  <TouchableOpacity
-                    key={mechanic.id}
-                    className="bg-white p-4 my-2 rounded-lg shadow border border-gray-200"
-                    onPress={() => handleMechanicSelect(mechanic)}
-                  >
-                    <Text className="font-bold text-lg">{mechanic.name}</Text>
-                    <View className="flex-row justify-between mt-2">
-                      <Text>Distance: {mechanic.distance.text}</Text>
-                      <Text>ETA: {mechanic.duration.text}</Text>
-                    </View>
-                    <Text className="mt-2 text-blue-600 font-bold">Estimated Cost: ₹{mechanic.cost.toFixed(2)}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
+              {showMechanicOffers && (
+                <View className="my-4">
+                  {mechanicOffers?.map((mechanic) => (
+                    <TouchableOpacity
+                      key={mechanic.id}
+                      className="bg-white p-4 my-2 rounded-lg shadow border border-gray-200"
+                      onPress={() => handleMechanicSelect(mechanic)}
+                    >
+                      <Text className="font-bold text-lg">{mechanic.name}</Text>
+                      <View className="flex-row justify-between mt-2">
+                        <Text>Distance: {mechanic.distance.text}</Text>
+                        <Text>ETA: {mechanic.duration.text}</Text>
+                      </View>
+                      <Text className="mt-2 text-blue-600 font-bold">Estimated Cost: ₹{mechanic.cost.toFixed(2)}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
 
-          </>
-        )}
-      />
-
-      {/* Input Area */}
-      <View className="flex-row items-center border-t border-gray-200 pb-12 mb-16 bg-white">
-        <TouchableOpacity
-          className="p-2 mr-2"
-          onPress={() => setShowServiceOptions(true)}
-        >
-          <Ionicons name="add-circle-outline" size={28} color="#0066CC" />
-        </TouchableOpacity>
-
-        <TextInput
-          className="flex-1 bg-gray-100 rounded-full px-4 py-2"
-          placeholder="Type a message..."
-          value={inputText}
-          onChangeText={setInputText}
+            </>
+          )}
         />
 
-        <TouchableOpacity
-          className="p-2 ml-2"
-          onPress={handleSendMessage}
-          disabled={!inputText.trim() || chatMutation.isPending}
-        >
-          <Ionicons
-            name="send"
-            size={24}
-            color={(inputText.trim() && !chatMutation.isPending) ? "#0066CC" : "#CCCCCC"}
+        {/* Input Area */}
+        <View className="flex-row items-center border-t border-gray-200 pb-12 mb-16 bg-white">
+          <TouchableOpacity
+            className="p-2 mr-2"
+            onPress={() => setShowServiceOptions(true)}
+          >
+            <Ionicons name="add-circle-outline" size={28} color="#0066CC" />
+          </TouchableOpacity>
+
+          <TextInput
+            className="flex-1 bg-gray-100 rounded-full px-4 py-2"
+            placeholder="Type a message..."
+            value={inputText}
+            onChangeText={setInputText}
           />
-        </TouchableOpacity>
-      </View>
 
-      {/* Service Options Modal */}
-      <Modal
-        transparent={true}
-        visible={showServiceOptions}
-        animationType="slide"
-        onRequestClose={() => setShowServiceOptions(false)}
-      >
-        <TouchableOpacity
-          style={{ flex: 1, justifyContent: 'flex-end' }}
-          activeOpacity={1}
-          onPress={() => setShowServiceOptions(false)}
-        >
-          <View className="bg-white rounded-t-xl p-4">
-            <Text className="text-lg font-bold mb-4">Select an option</Text>
-            {getServiceOptions().map((option) => (
-              <TouchableOpacity
-                key={option.id}
-                className={`py-3 border-b border-gray-200 ${option.disabled ? 'opacity-50' : ''}`}
-                onPress={() => !option.disabled && handleServiceOptionSelect(option)}
-                disabled={option.disabled}
-              >
-                <Text className={`text-base ${option.disabled ? 'text-gray-400' : 'text-black'}`}>
-                  {option.title}
-                </Text>
-                {option.disabled && (
-                  <Text className="text-xs text-gray-400">
-                    (Available after mechanic assignment)
-                  </Text>
-                )}
-              </TouchableOpacity>
-            ))}
-            <TouchableOpacity
-              className="py-3 mt-2"
-              onPress={() => setShowServiceOptions(false)}
-            >
-              <Text className="text-base text-center text-red-500">Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Payment Modal */}
-      <Modal
-        transparent={true}
-        visible={showPaymentModal}
-        animationType="fade"
-        onRequestClose={() => setShowPaymentModal(false)}
-      >
-        <View className="flex-1 justify-center items-center bg-black/50">
-          <View className="bg-white rounded-xl p-5 w-4/5">
-            <Text className="text-xl font-bold mb-4 text-center">Payment Details</Text>
-            <Text className="mb-2">Service: {currentServiceRequestId ? "Active Service" : "Sample Service"}</Text>
-            <Text className="mb-2">Mechanic: {mechanicOffers.length > 0 ? mechanicOffers[0].name : "Assigned Mechanic"}</Text>
-            <Text className="mb-4 text-lg font-bold">Amount: ₹{mechanicOffers.length > 0 ? mechanicOffers[0].cost.toFixed(2) : "550"}</Text>
-
-            <View className="flex-row justify-end mt-4">
-              <TouchableOpacity
-                className="px-4 py-2 mr-2"
-                onPress={() => setShowPaymentModal(false)}
-              >
-                <Text className="text-gray-500">Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="bg-green-500 px-4 py-2 rounded-lg"
-                onPress={
-                  () => handlePaymentConfirm(500, "67f18fa1a1a883e8a57caf3d", "pAY")}
-              >
-                <Text className="text-white font-bold">Pay Now</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          <TouchableOpacity
+            className="p-2 ml-2"
+            onPress={handleSendMessage}
+            disabled={!inputText.trim() || chatMutation.isPending}
+          >
+            <Ionicons
+              name="send"
+              size={24}
+              color={(inputText.trim() && !chatMutation.isPending) ? "#0066CC" : "#CCCCCC"}
+            />
+          </TouchableOpacity>
         </View>
-      </Modal>
 
-      {/* Rating Modal */}
-      <Modal
-        transparent={true}
-        visible={showRatingModal}
-        animationType="fade"
-        onRequestClose={() => setShowRatingModal(false)}
-      >
-        <View className="flex-1 justify-center items-center bg-black/50">
-          <View className="bg-white rounded-xl p-5 w-4/5">
-            <Text className="text-xl font-bold mb-4 text-center">Rate Your Service</Text>
-            <Text className="mb-4 text-center">{mechanicOffers.length > 0 ? mechanicOffers[0].name : "Recent Service"}</Text>
-
-            <View className="flex-row justify-center mb-6">
-              {[1, 2, 3, 4, 5].map((star) => (
+        {/* Service Options Modal */}
+        <Modal
+          transparent={true}
+          visible={showServiceOptions}
+          animationType="slide"
+          onRequestClose={() => setShowServiceOptions(false)}
+        >
+          <TouchableOpacity
+            style={{ flex: 1, justifyContent: 'flex-end' }}
+            activeOpacity={1}
+            onPress={() => setShowServiceOptions(false)}
+          >
+            <View className="bg-white rounded-t-xl p-4">
+              <Text className="text-lg font-bold mb-4">Select an option</Text>
+              {getServiceOptions().map((option) => (
                 <TouchableOpacity
-                  key={star}
-                  onPress={() => setRating(star)}
+                  key={option.id}
+                  className={`py-3 border-b border-gray-200 ${option.disabled ? 'opacity-50' : ''}`}
+                  onPress={() => !option.disabled && handleServiceOptionSelect(option)}
+                  disabled={option.disabled}
                 >
-                  <Ionicons
-                    name={rating >= star ? "star" : "star-outline"}
-                    size={36}
-                    color={rating >= star ? "#FFD700" : "#CCCCCC"}
-                    style={{ marginHorizontal: 5 }}
-                  />
+                  <Text className={`text-base ${option.disabled ? 'text-gray-400' : 'text-black'}`}>
+                    {option.title}
+                  </Text>
+                  {option.disabled && (
+                    <Text className="text-xs text-gray-400">
+                      (Available after mechanic assignment)
+                    </Text>
+                  )}
                 </TouchableOpacity>
               ))}
-            </View>
-
-            <TextInput
-              className="bg-gray-100 rounded-lg p-4 mb-4"
-              placeholder="Add a comment (optional)"
-              multiline={true}
-              numberOfLines={3}
-            />
-
-            <View className="flex-row justify-end">
               <TouchableOpacity
-                className="px-4 py-2 mr-2"
-                onPress={() => setShowRatingModal(false)}
+                className="py-3 mt-2"
+                onPress={() => setShowServiceOptions(false)}
               >
-                <Text className="text-gray-500">Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                className="bg-blue-500 px-4 py-2 rounded-lg"
-                onPress={handleRatingSubmit}
-                disabled={rating === 0}
-              >
-                <Text className="text-white font-bold">Submit</Text>
+                <Text className="text-base text-center text-red-500">Cancel</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-      </Modal>
+          </TouchableOpacity>
+        </Modal>
 
-      {/* Payment Success Modal */}
-      {paymentSuccess && (
-        <View className="absolute inset-0 flex justify-center items-center bg-black/50">
-          <View className="bg-white rounded-xl p-6 items-center">
-            <Ionicons name="checkmark-circle" size={64} color="green" />
-            <Text className="text-xl font-bold mt-3">Payment Successful!</Text>
+        {/* Payment Modal */}
+        <Modal
+          transparent={true}
+          visible={showPaymentModal}
+          animationType="fade"
+          onRequestClose={() => setShowPaymentModal(false)}
+        >
+          <View className="flex-1 justify-center items-center bg-black/50">
+            <View className="bg-white rounded-xl p-5 w-4/5">
+              <Text className="text-xl font-bold mb-4 text-center">Payment Details</Text>
+              <Text className="mb-2">Service: {currentServiceRequestId ? "Active Service" : "Sample Service"}</Text>
+              <Text className="mb-2">Mechanic: {mechanicOffers?.length > 0 ? mechanicOffers[0].name : "Assigned Mechanic"}</Text>
+              <Text className="mb-4 text-lg font-bold">Amount: ₹{mechanicOffers?.length > 0 ? mechanicOffers[0].cost.toFixed(2) : "550"}</Text>
+
+              <View className="flex-row justify-end mt-4">
+                <TouchableOpacity
+                  className="px-4 py-2 mr-2"
+                  onPress={() => setShowPaymentModal(false)}
+                >
+                  <Text className="text-gray-500">Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="bg-green-500 px-4 py-2 rounded-lg"
+                  onPress={
+                    () => handlePaymentConfirm(500, "67f18fa1a1a883e8a57caf3d", "pAY")}
+                >
+                  <Payment
+                    fullName={user?.name}
+                    email={user?.email}
+                    amount={70}
+                    serviceRequestId={"uiugjkghjgyku"}
+                  />
+                  <Text className="text-white font-bold">Pay Now</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-        </View>
-      )}
-    </SafeAreaView>
+        </Modal>
+
+        {/* Rating Modal */}
+        <Modal
+          transparent={true}
+          visible={showRatingModal}
+          animationType="fade"
+          onRequestClose={() => setShowRatingModal(false)}
+        >
+          <View className="flex-1 justify-center items-center bg-black/50">
+            <View className="bg-white rounded-xl p-5 w-4/5">
+              <Text className="text-xl font-bold mb-4 text-center">Rate Your Service</Text>
+              <Text className="mb-4 text-center">{mechanicOffers?.length > 0 ? mechanicOffers[0]?.name : "Recent Service"}</Text>
+
+              <View className="flex-row justify-center mb-6">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <TouchableOpacity
+                    key={star}
+                    onPress={() => setRating(star)}
+                  >
+                    <Ionicons
+                      name={rating >= star ? "star" : "star-outline"}
+                      size={36}
+                      color={rating >= star ? "#FFD700" : "#CCCCCC"}
+                      style={{ marginHorizontal: 5 }}
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <TextInput
+                className="bg-gray-100 rounded-lg p-4 mb-4"
+                placeholder="Add a comment (optional)"
+                multiline={true}
+                numberOfLines={3}
+              />
+
+              <View className="flex-row justify-end">
+                <TouchableOpacity
+                  className="px-4 py-2 mr-2"
+                  onPress={() => setShowRatingModal(false)}
+                >
+                  <Text className="text-gray-500">Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="bg-blue-500 px-4 py-2 rounded-lg"
+                  onPress={handleRatingSubmit}
+                  disabled={rating === 0}
+                >
+                  <Text className="text-white font-bold">Submit</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Payment Success Modal */}
+        {paymentSuccess && (
+          <View className="absolute inset-0 flex justify-center items-center bg-black/50">
+            <View className="bg-white rounded-xl p-6 items-center">
+              <Ionicons name="checkmark-circle" size={64} color="green" />
+              <Text className="text-xl font-bold mt-3">Payment Successful!</Text>
+            </View>
+          </View>
+        )}
+      </SafeAreaView>
+    </StripeProvider>
   );
 };
 

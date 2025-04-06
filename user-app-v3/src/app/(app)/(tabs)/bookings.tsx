@@ -222,7 +222,9 @@ const ServiceRequestHistory = () => {
         }
       });
 
-      return response.data || [];
+      console.log("Service Requests:", response.data.data);
+
+      return response.data.data || [];
     },
     enabled: !!user?.id // Only run query if user is logged in
   });

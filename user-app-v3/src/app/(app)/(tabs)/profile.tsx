@@ -1,22 +1,25 @@
 import { useState } from "react";
 import { Image, ScrollView, Text, View, TouchableOpacity } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { icons, images } from "@/src/constants";
-import InputField from "@/src/components/InputField";
 import { router } from "expo-router";
+import { useAuthStore } from "@/src/state/useAuth";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { icons } from "@/src/constants";
+
 const Profile = () => {
-  const handleSignOut = () => {
-      //signOut();
-      router.replace("/(auth)/sign-in");
-    };
+  const { user, resetState } = useAuthStore();
+
+  const handleSignOut = async () => {
+    await resetState(); // Reset the auth state (clears token, user data, etc.)
+    router.replace("/(auth)/sign-in");
+  };
 
   // Dummy user data
   const dummyUser = {
-    firstName: "John",
-    lastName: "Doe",
+    firstName: user?.name,
+    lastName: user?.name,
     imageUrl: "https://randomuser.me/api/portraits/men/1.jpg",
-    primaryEmailAddress: { emailAddress: "john.doe@example.com" },
-    primaryPhoneNumber: { phoneNumber: "+1 234 567 8901" }
+    primaryEmailAddress: { emailAddress: user?.email },
+    primaryPhoneNumber: { phoneNumber: user?.phoneNumber }
   };
 
   // State for selected plan
@@ -56,16 +59,16 @@ const Profile = () => {
         contentContainerStyle={{ paddingBottom: 120 }}
       >
         <View className="flex flex-row items-center justify-between my-5">
-                  <Text className="text-2xl font-JakartaExtraBold">
-                    My Profile
-                  </Text>
-                  <TouchableOpacity
-                    onPress={handleSignOut}
-                    className="justify-center items-center w-10 h-10 rounded-full bg-white"
-                  >
-                    <Image source={icons.out} className="w-4 h-4" />
-                  </TouchableOpacity>
-                </View>
+          <Text className="text-2xl font-JakartaExtraBold">
+            My Profile
+          </Text>
+          <TouchableOpacity
+            onPress={handleSignOut}
+            className="justify-center items-center w-10 h-10 rounded-full bg-white"
+          >
+            <Image source={icons.out} className="w-4 h-4" />
+          </TouchableOpacity>
+        </View>
 
         {/* Profile Image */}
         <View className="flex items-center justify-center my-5">
@@ -79,37 +82,6 @@ const Profile = () => {
         {/* Profile Information */}
         <View className="flex flex-col items-start justify-center bg-white rounded-lg shadow-sm shadow-neutral-300 px-5 py-3 mb-8">
           <View className="flex flex-col items-start justify-start w-full">
-            {/* <InputField
-              label="First name"
-              placeholder={dummyUser.firstName}
-              containerStyle="w-full"
-              inputStyle="p-3.5 bg-gray-900 "
-              editable={false}
-            />
-
-            <InputField
-              label="Last name"
-              placeholder={dummyUser.lastName}
-              containerStyle="w-full"
-              inputStyle="p-3.5"
-              editable={false}
-            />
-
-            <InputField
-              label="Email"
-              placeholder={dummyUser.primaryEmailAddress.emailAddress}
-              containerStyle="w-full"
-              inputStyle="p-3.5"
-              editable={false}
-            />
-
-            <InputField
-              label="Phone"
-              placeholder={dummyUser?.primaryPhoneNumber?.phoneNumber}
-              containerStyle="w-full"
-              inputStyle="p-3.5"
-              editable={false}
-            /> */}
             <View className="w-full mb-4">
               <Text className="text-gray-700 mb-1">First name</Text>
               <View className="border border-gray-300 rounded-xl bg-gray-100">
@@ -145,17 +117,16 @@ const Profile = () => {
           <Text className="text-2xl font-JakartaBold mb-5">Explore our pricing plans</Text>
           {/* Pricing Cards */}
           {pricingPlans.map((plan) => (
-            <View 
+            <View
               key={plan.id}
-              className={`mb-4 p-5 rounded-lg ${
-                selectedPlan === plan.id 
-                  ? "bg-blue-50 border-2 border-blue-500" 
-                  : "bg-white border border-gray-200"
-              }`}
+              className={`mb-4 p-5 rounded-lg ${selectedPlan === plan.id
+                ? "bg-blue-50 border-2 border-blue-500"
+                : "bg-white border border-gray-200"
+                }`}
             >
               <Text className="text-xl font-JakartaBold mb-2">{plan.title}</Text>
               <Text className="text-gray-600 mb-3">{plan.description}</Text>
-              
+
               {/* Features */}
               <View className="mb-4">
                 {plan.features.map((feature, index) => (
@@ -168,7 +139,7 @@ const Profile = () => {
 
               {/* Change Plan Button */}
               {selectedPlan !== plan.id ? (
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={() => handlePlanChange(plan.id)}
                   className="bg-blue-500 py-3 px-4 rounded-lg"
                 >

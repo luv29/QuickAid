@@ -166,7 +166,7 @@ const OfflinePage = () => {
                 <Text className="text-sm font-JakartaMedium">{rating.toFixed(1)}</Text>
               </View>
               <Text className="text-sm text-gray-500 font-JakartaRegular">
-                {item.distance.toFixed(1)} km away
+                {item.distance.toFixed(1)} meters away
               </Text>
             </View>
           </View>
@@ -291,7 +291,7 @@ const OfflinePage = () => {
           ) : mechanics && mechanics.length > 0 ? (
             <FlatList
               data={mechanics}
-              renderItem={({ item, index }) => renderMechanicCard({ item, index })}
+              renderItem={renderMechanicCard}
               keyExtractor={item => item.id}
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -318,7 +318,14 @@ const OfflinePage = () => {
             contentContainerStyle={{ paddingRight: 16 }}
           >
             {emergencyContacts.map(contact => (
-              <View key={contact.id}>{renderEmergencyContact({ item: contact })}</View>
+              <TouchableOpacity
+                key={contact.id}
+                onPress={() => handleCall(contact.phone)}
+                className="mr-3 bg-red-500 px-4 py-2 rounded-full flex-row items-center"
+              >
+                <Image source={icons.target} className="w-6 h-6 mr-2" tintColor="white" />
+                <Text className="text-white font-JakartaMedium">{contact.name}</Text>
+              </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
@@ -327,7 +334,21 @@ const OfflinePage = () => {
         <View className="mt-1 p-4">
           <Text className="text-xl font-JakartaBold mb-3">Basic Troubleshooting</Text>
           {troubleshootingGuides.map(guide => (
-            <View key={guide.id}>{renderTroubleshootingCard({ item: guide })}</View>
+            <TouchableOpacity
+              key={guide.id}
+              onPress={() => setSelectedGuide(guide)}
+              className="flex-row bg-white rounded-xl mb-3 overflow-hidden shadow-sm"
+            >
+              <Image
+                source={guide.image}
+                className="w-24 h-24 bg-gray-200"
+                resizeMode="cover"
+              />
+              <View className="p-3 flex-1 justify-center">
+                <Text className="text-lg font-JakartaBold">{guide.title}</Text>
+                <Text className="text-sm text-gray-500 font-JakartaRegular">{guide.description}</Text>
+              </View>
+            </TouchableOpacity>
           ))}
         </View>
 

@@ -102,23 +102,20 @@ export class BookingService {
 
     for (const mechanic of nearbyMechanics) {
       // Get accurate distance and time using Google Maps API
-      const distanceResult =
-        await this.distanceCalculationService.calculateDistance(
-          data.latitude,
-          data.longitude,
-          mechanic.address.lat,
-          mechanic.address.lng,
-        );
+      // const distanceResult =
+      //   await this.distanceCalculationService.calculateDistance(
+      //     data.latitude,
+      //     data.longitude,
+      //     mechanic.address.lat,
+      //     mechanic.address.lng,
+      //   );
 
-      console.log('this is ****************************', distanceResult);
+      // console.log('this is ****************************', distanceResult);
 
-      // Calculate the cost based on distance, time, and service type
-      const distanceInKm =
-        this.distanceCalculationService.convertMetersToKilometers(
-          distanceResult.distanceInMeters,
-        );
+      // // Calculate the cost based on distance, time, and service type
+      const distanceInKm = 5;
 
-      const estimatedTimeInMinutes = distanceResult.durationInSeconds / 60;
+      const estimatedTimeInMinutes = 30;
 
       const cost = this.costCalculationService.calculateServiceCost(
         data.serviceType,
@@ -132,12 +129,12 @@ export class BookingService {
         id: mechanic.id,
         name: mechanic.name,
         distance: {
-          text: distanceResult.distanceText,
-          value: distanceResult.distanceInMeters,
+          text: '5 km', // distanceResult.distanceText,
+          value: 5000,
         },
         duration: {
-          text: distanceResult.durationText,
-          value: distanceResult.durationInSeconds,
+          text: "30 minutes", // distanceResult.durationText,
+          value: 1800,
         },
         cost,
       });
