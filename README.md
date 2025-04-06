@@ -31,7 +31,7 @@ Picture a comprehensive roadside assistance system that jumps into action when y
 |-------------|--------------------------------------------------------|
 | Frontend    | React Native, Tailwind CSS, React Query                |
 | AI          | MCP (Model Context Protocol), Groq (AI Inference Engine), Langgraph (Agentic AI Builder)  |
-| Backend     | NestJS, Prisma                                         |
+| Backend     | NestJS, Prisma, Apache kafka, Socket.io                                         |
 | Database    | MongoDB, SQlite                                      |
 | Security    | JWT, Secure Auth, Real-time Monitoring |
 
