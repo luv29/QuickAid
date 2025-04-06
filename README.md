@@ -7,6 +7,7 @@ Picture a comprehensive roadside assistance system that jumps into action when y
 
 ## Project Overview
 **QwikAid** is a modern, AI-enhanced platform designed to provide instant roadside help in emergency situations. In the event of a medical emergency or a car breakdown, QwikAid links users with local service providers, guarantees real-time updates, and offers offline and multilingual access for broad utility.
+
 ---
 
 ## Key Features
