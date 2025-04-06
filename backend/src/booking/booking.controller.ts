@@ -30,7 +30,6 @@ class MechanicResponseDto {
 class ConfirmBookingDto {
   serviceRequestId: string;
   mechanicId: string;
-  userId: string;
 }
 
 @Controller('booking')
@@ -61,7 +60,6 @@ export class BookingController {
   @Post('confirm')
   async confirmBooking(@Body() confirmBookingDto: ConfirmBookingDto) {
     return this.bookingService.confirmBookingWithMechanic(
-      confirmBookingDto.userId, // Explicitly passed instead of from JWT
       confirmBookingDto.serviceRequestId,
       confirmBookingDto.mechanicId,
     );

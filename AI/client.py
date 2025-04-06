@@ -93,6 +93,8 @@ class MCPClient:
         for content in llm_response.choices[0].message.tool_calls or []:
             tool_name = content.function.name
             tool_args = json.loads(content.function.arguments)
+            print("tool name",tool_name)
+            print("tool arguments",tool_args)
 
             result = await self.session.call_tool(tool_name, tool_args)
             

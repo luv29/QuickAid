@@ -7,25 +7,26 @@ export class PaymentController {
 
   @Post('create')
   async createOrder(
-    @Body() body: { amount: number; serviceRequestId: string; comment: string },
+    @Body() body: { name: string; email: string; amount: number },
   ) {
-    const { amount, serviceRequestId, comment } = body;
-    return await this.paymentService.createOrder(
-      amount,
-      serviceRequestId,
-      comment,
-    );
+    const { name, email, amount } = body;
+    return await this.paymentService.createOrder(name, email, amount);
   }
 
   @Post('verify')
-  async verifyPayment(
-    @Body() body: { paymentId: string; orderId: string; signature: string },
+  async confirmPayment(
+    @Body()
+    body: {
+      paymentMethodId: string;
+      paymentIntentId: string;
+      customerId: string;
+    },
   ) {
-    const { paymentId, orderId, signature } = body;
+    const { paymentMethodId, paymentIntentId, customerId } = body;
     return await this.paymentService.verifyPayment(
-      paymentId,
-      orderId,
-      signature,
+      paymentMethodId,
+      paymentIntentId,
+      customerId,
     );
   }
 }

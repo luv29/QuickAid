@@ -1,22 +1,20 @@
-import { useAuth } from "@clerk/clerk-expo";
 import { useStripe } from "@stripe/stripe-react-native";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { Alert, Image, Text, View } from "react-native";
-import { ReactNativeModal } from "react-native-modal";
+import ReactNativeModal from "react-native-modal";
 
-import CustomButton from "@/components/CustomButton";
-import { images } from "@/constants";
-import { fetchAPI } from "@/lib/fetch";
-import { useLocationStore } from "@/store";
-import { PaymentProps } from "@/types/type";
+import CustomButton from "@/src/components/CustomButton";
+import { images } from "@/src/constants";
+import { paymentService } from "../service";
+import { useLocationStore } from "@/src/store";
+import { PaymentProps } from "@/src/types/type";
 
 const Payment = ({
   fullName,
   email,
   amount,
-  driverId,
-  rideTime,
+  serviceRequestId,
 }: PaymentProps) => {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const {
@@ -28,7 +26,6 @@ const Payment = ({
     destinationLongitude,
   } = useLocationStore();
 
-  const { userId } = useAuth();
   const [success, setSuccess] = useState<boolean>(false);
 
   const openPaymentSheet = async () => {
@@ -45,7 +42,7 @@ const Payment = ({
 
   const initializePaymentSheet = async () => {
     const { error } = await initPaymentSheet({
-      merchantDisplayName: "Example, Inc.",
+      merchantDisplayName: "Quick Aid",
       intentConfiguration: {
         mode: {
           amount: parseInt(amount) * 100,
@@ -56,57 +53,16 @@ const Payment = ({
           shouldSavePaymentMethod,
           intentCreationCallback,
         ) => {
-          const { paymentIntent, customer } = await fetchAPI(
-            "/(api)/(stripe)/create",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                name: fullName || email.split("@")[0],
-                email: email,
-                amount: amount,
-                paymentMethodId: paymentMethod.id,
-              }),
-            },
-          );
+          // Create the payment intent and customer on the server
+          const { paymentIntent, customer } = await paymentService.createOrder(name, email, amount);
 
-          if (paymentIntent.client_secret) {
-            const { result } = await fetchAPI("/(api)/(stripe)/pay", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                payment_method_id: paymentMethod.id,
-                payment_intent_id: paymentIntent.id,
-                customer_id: customer,
-                client_secret: paymentIntent.client_secret,
-              }),
-            });
+          if (paymentIntent?.client_secret) {
+            // Confirm the payment by attaching the payment method and confirming the intent
+            const { result } = await paymentService.verifyPayment(paymentMethod.id, paymentIntent.id, customer);
 
-            if (result.client_secret) {
-              await fetchAPI("/(api)/ride/create", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  origin_address: userAddress,
-                  destination_address: destinationAddress,
-                  origin_latitude: userLatitude,
-                  origin_longitude: userLongitude,
-                  destination_latitude: destinationLatitude,
-                  destination_longitude: destinationLongitude,
-                  ride_time: rideTime.toFixed(0),
-                  fare_price: parseInt(amount) * 100,
-                  payment_status: "paid",
-                  driver_id: driverId,
-                  user_id: userId,
-                }),
-              });
-
+            // If the payment confirmation returns a valid client secret, create the ride record
+            if (result?.client_secret) {
+              
               intentCreationCallback({
                 clientSecret: result.client_secret,
               });
@@ -114,11 +70,11 @@ const Payment = ({
           }
         },
       },
-      returnURL: "myapp://book-ride",
+      returnURL: "quickaid://book-ride",
     });
 
     if (!error) {
-      // setLoading(true);
+      // Optionally, update any loading state here
     }
   };
 
@@ -138,19 +94,18 @@ const Payment = ({
           <Image source={images.check} className="w-28 h-28 mt-5" />
 
           <Text className="text-2xl text-center font-JakartaBold mt-5">
-            Booking placed successfully
+            Mechanic booked successfully
           </Text>
 
           <Text className="text-md text-general-200 font-JakartaRegular text-center mt-3">
-            Thank you for your booking. Your reservation has been successfully
-            placed. Please proceed with your trip.
+            Thank you for booking your mechanic with QwikAid.
           </Text>
 
           <CustomButton
             title="Back Home"
             onPress={() => {
               setSuccess(false);
-              router.push("/(app)/(tabs)/home");
+              router.push("/(app)/(tabs)/bookings");
             }}
             className="mt-5"
           />

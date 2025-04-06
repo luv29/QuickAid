@@ -17,6 +17,7 @@ import { mechanicService } from "@/src/service";
 import { useAuthStore } from "@/src/state/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Map from "@/src/components/Map";
+import { bookingService } from "@/src/service";
 
 // Define TypeScript interfaces for better type safety
 interface ServiceRequest {
@@ -98,10 +99,51 @@ const Home = () => {
   });
 
   // Define mutations for accept/reject functionality
+  // const updateConfirmationMutation = useMutation({
+  //   mutationFn: async ({ confirmationId, status }: { confirmationId: string, status: ConfirmationStatus }) => {
+  //     if (!mechanic?.id) return null;
+  //     const response = await mechanicService.update(mechanic?.id, {
+  //       MechanicConfirmation: {
+  //         update: {
+  //           where: {
+  //             id: confirmationId,
+  //           },
+  //           data: {
+  //             status: status,
+  //           }
+  //         },
+  //         connect:{
+
+  //         }
+  //       }
+
+
+
+
+  //       // await bookingService.confirmBookingWithMechanic(confirmationId,mechanic.id)
+
+  //     });
+
+  //     console.log("Response from update confirmation:", response.data);
+
+  //     return response.data as MechanicConfirmation;
+  //   },
+  //   onSuccess: () => {
+  //     // Invalidate and refetch data after successful mutation
+  //     queryClient.invalidateQueries({ queryKey: ['mechanicConfirmations', mechanic?.id] });
+  //   },
+  //   onError: (error) => {
+  //     Alert.alert("Error", "Failed to update request status. Please try again.");
+  //     console.error("Update confirmation error:", error);
+  //   },
+  // });
+
   const updateConfirmationMutation = useMutation({
     mutationFn: async ({ confirmationId, status }: { confirmationId: string, status: ConfirmationStatus }) => {
       if (!mechanic?.id) return null;
-      return await mechanicService.update(mechanic?.id, {
+      
+      // Update the status
+      await mechanicService.update(mechanic.id, {
         MechanicConfirmation: {
           update: {
             where: {
@@ -113,15 +155,23 @@ const Home = () => {
           }
         }
       });
+              
+        // Refetch the mechanic data to get the updated confirmation
+        const refreshedData = await mechanicService.findOne(mechanic.id, {
+          MechanicConfirmation: true
+        });
+        
+        // Find the specific confirmation
+        const updatedConfirmation = refreshedData.data.MechanicConfirmation.find(
+          (confirmation : any) => confirmation.id === confirmationId
+        );
+        
+      await bookingService.confirmBookingWithMechanic(updatedConfirmation.serviceRequestId, mechanic.id);
+      console.log("Updated confirmation:", updatedConfirmation);
+      
+      return updatedConfirmation;
     },
-    onSuccess: () => {
-      // Invalidate and refetch data after successful mutation
-      queryClient.invalidateQueries({ queryKey: ['mechanicConfirmations', mechanic?.id] });
-    },
-    onError: (error) => {
-      Alert.alert("Error", "Failed to update request status. Please try again.");
-      console.error("Update confirmation error:", error);
-    },
+    // Rest of the mutation definition remains the same
   });
 
   // Process the mechanic data into received (PENDING) and waiting (CONFIRMED) requests

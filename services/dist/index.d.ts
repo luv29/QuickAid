@@ -88,11 +88,19 @@ declare class PaymentService {
 }
 
 interface MechanicOffer {
-    mechanicId: string;
+    id: string;
     name: string;
-    rating: number;
-    distance: number;
-    estimatedArrivalTime: number;
+    distance: {
+        text: string;
+        value: number;
+    };
+    duration: {
+        text: string;
+        value: number;
+    };
+    cost: number;
+    distanceText?: string;
+    estimatedCost?: number;
 }
 interface CreateServiceRequestDto {
     userId: string;
@@ -101,6 +109,12 @@ interface CreateServiceRequestDto {
     longitude: number;
     description?: string;
     address?: string;
+    Car?: {
+        make: string;
+        model: string;
+        year: number;
+        licensePlate: string;
+    }[];
 }
 declare class BookingService {
     private api;
@@ -115,15 +129,16 @@ declare class BookingService {
     /**
      * Records a mechanic's response (accept/decline) to a service request
      */
-    mechanicRespondsToRequest(mechanicId: string, serviceRequestId: string, isAccepted: boolean): Promise<axios.AxiosResponse<any, any>>;
+    mechanicRespondsToRequest(mechanicId: string, serviceRequestId: string, isAccepted: boolean): Promise<any>;
     /**
      * Gets available mechanics for a specific service request
      */
-    getMechanicsForServiceRequest(serviceRequestId: string): Promise<axios.AxiosResponse<any, any>>;
+    getMechanicsForServiceRequest(serviceRequestId: string): Promise<any>;
     /**
      * Confirms booking with a specific mechanic
+     * Removed userId parameter to match server implementation
      */
-    confirmBookingWithMechanic(userId: string, serviceRequestId: string, mechanicId: string): Promise<axios.AxiosResponse<any, any>>;
+    confirmBookingWithMechanic(serviceRequestId: string, mechanicId: string): Promise<any>;
 }
 
 declare class ReviewsService {

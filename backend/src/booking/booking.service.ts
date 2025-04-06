@@ -263,7 +263,6 @@ export class BookingService {
   }
 
   async confirmBookingWithMechanic(
-    userId: string,
     serviceRequestId: string,
     mechanicId: string,
   ) {
@@ -271,7 +270,6 @@ export class BookingService {
     const serviceRequest = await this.prisma.serviceRequest.findFirst({
       where: {
         id: serviceRequestId,
-        userId,
       },
     });
 
@@ -309,15 +307,15 @@ export class BookingService {
     // );
 
     // Create a chat room for communication
-    const chat = await this.prisma.chat.create({
-      data: {
-        serviceRequest: { connect: { id: serviceRequestId } },
-      },
-    });
+    // const chat = await this.prisma.chat.create({
+    //   data: {
+    //     serviceRequest: { connect: { id: serviceRequestId } },
+    //   },
+    // });
 
     return {
       serviceRequest: updatedRequest,
-      chatId: chat.id,
+      // chatId: chat.id,
     };
   }
 }

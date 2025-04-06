@@ -4,7 +4,7 @@
     "slug": "expo-app@latest",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/QwikAidLogo.jpeg",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -30,7 +30,9 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.FOREGROUND_SERVICE",
-        "VIBRATE"
+        "CALL_PHONE",
+        "VIBRATE",
+        "ACCESS_NOTIFICATION_POLICY"
       ]
     },
     "web": {

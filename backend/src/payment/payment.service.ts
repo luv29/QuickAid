@@ -1,103 +1,106 @@
-import { Injectable } from '@nestjs/common';
-import Razorpay from 'razorpay';
-import { v4 as uuidv4 } from 'uuid';
-import { DatabaseService } from 'src/database/database.service';
-import { PaymentStatus } from '@prisma/client';
+import {
+  Injectable,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2025-03-31.basil',
+});
 
 @Injectable()
 export class PaymentService {
-  private razorpay: Razorpay;
-  constructor(private readonly db: DatabaseService) {
-    this.razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
-    });
-  }
-  async createOrder(amount: number, serviceRequestId: string, comment: string) {
-    const receipt = `receipt_order_${uuidv4()}`;
-    const options = {
-      amount: amount * 100,
-      currency: 'INR',
-      receipt,
-      notes: {
-        description: 'Payment for service',
-        serviceRequestId,
-      },
-    };
+  /**
+   * Creates a Stripe payment flow similar to your serverless function.
+   * @param name - Customer's name.
+   * @param email - Customer's email.
+   * @param amount - Amount to charge (in main currency unit, e.g., dollars).
+   * @returns An object containing the payment intent, ephemeral key, and customer ID.
+   */
+  async createOrder(name: string, email: string, amount: number) {
+    if (!name || !email || !amount) {
+      throw new BadRequestException('Missing required fields');
+    }
+
+    let customer;
+    try {
+      const customers = await stripe.customers.list({ email });
+      customer =
+        customers.data.length > 0
+          ? customers.data[0]
+          : await stripe.customers.create({ name, email });
+    } catch (err) {
+      console.error('Error fetching/creating customer', err);
+      throw new InternalServerErrorException(
+        'Error processing customer information',
+      );
+    }
 
     try {
-      const order = await this.razorpay.orders.create(options);
+      // Create an ephemeral key for the customer.
+      const ephemeralKey = await stripe.ephemeralKeys.create(
+        { customer: customer.id },
+        { apiVersion: '2024-06-20' },
+      );
 
-      const payment = await this.db.payment.create({
-        data: {
-          serviceRequestId,
-          amount,
-          status: PaymentStatus.PENDING,
-          razorpayOrderId: order.id,
-          razorpayPaymentId: null,
-          razorpaySignature: null,
-          comment,
+      // Create a payment intent. Multiply by 100 to convert to the smallest currency unit.
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount * 100,
+        currency: 'usd',
+        customer: customer.id,
+        automatic_payment_methods: {
+          enabled: true,
+          allow_redirects: 'never',
         },
+      });
+
+      return {
+        paymentIntent,
+        ephemeralKey,
+        customer: customer.id,
+      };
+    } catch (err) {
+      console.error('Error creating payment intent or ephemeral key', err);
+      throw new InternalServerErrorException('Error creating payment');
+    }
+  }
+
+  /**
+   * Confirms a Stripe payment.
+   * @param paymentMethodId - The ID of the payment method.
+   * @param paymentIntentId - The ID of the payment intent.
+   * @param customerId - The customer's ID.
+   * @returns An object indicating success and the result of the confirmation.
+   */
+  async verifyPayment(
+    paymentMethodId: string,
+    paymentIntentId: string,
+    customerId: string,
+  ) {
+    if (!paymentMethodId || !paymentIntentId || !customerId) {
+      throw new BadRequestException('Missing required fields');
+    }
+
+    try {
+      // Attach the payment method to the customer.
+      const paymentMethod = await stripe.paymentMethods.attach(
+        paymentMethodId,
+        { customer: customerId },
+      );
+      // Confirm the payment intent with the attached payment method.
+      const result = await stripe.paymentIntents.confirm(paymentIntentId, {
+        payment_method: paymentMethod.id,
       });
 
       return {
         success: true,
-        order,
-        payment,
+        message: 'Payment successful',
+        result,
       };
-    } catch (err) {
-      console.error('Error creating Razorpay order', err);
-      throw new Error('Error creating Razorpay order');
+    } catch (error) {
+      console.error('Error confirming payment:', error);
+      throw new InternalServerErrorException('Error confirming payment');
     }
-  }
-
-  async verifyPayment(paymentId: string, orderId: string, signature: string) {
-    const generatedSignature = this.generateSignature(paymentId, orderId);
-
-    if (generatedSignature === signature) {
-      const razorpayPayment = await this.razorpay.payments.fetch(paymentId);
-
-      let payment;
-      if (razorpayPayment.status === 'captured') {
-        payment = await this.db.payment.update({
-          where: { serviceRequestId: razorpayPayment.notes.serviceRequestId },
-          data: {
-            razorpayPaymentId: paymentId,
-            razorpaySignature: signature,
-            status: PaymentStatus.COMPLETED,
-          },
-        });
-      } else {
-        payment = await this.db.payment.update({
-          where: { serviceRequestId: razorpayPayment.notes.serviceRequestId },
-          data: {
-            razorpayPaymentId: paymentId,
-            razorpaySignature: signature,
-            status: PaymentStatus.FAILED,
-          },
-        });
-      }
-
-      await this.db.serviceRequest.update({
-        where: { id: razorpayPayment.notes.serviceRequestId },
-        data: {
-          payment: { connect: { id: payment.id } },
-        },
-      });
-
-      return { success: razorpayPayment.status === 'captured', payment };
-    } else {
-      return {
-        success: false,
-        message: 'Payment verification failed (signature mismatch)',
-      };
-    }
-  }
-
-  private generateSignature(paymentId: string, orderId: string): string {
-    const crypto = require('crypto');
-    const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
-    hmac.update(`${orderId}|${paymentId}`);
-    return hmac.digest('hex');
   }
 }

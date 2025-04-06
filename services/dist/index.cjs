@@ -237,33 +237,42 @@ var BookingService = class {
    * Creates a new service request and finds available mechanics
    */
   async initiateServiceRequest(createServiceRequestDto) {
-    return await this.api.post("api/booking/request", createServiceRequestDto);
+    const response = await this.api.post(
+      "api/booking/request",
+      createServiceRequestDto
+    );
+    return response.data;
   }
   /**
    * Records a mechanic's response (accept/decline) to a service request
    */
   async mechanicRespondsToRequest(mechanicId, serviceRequestId, isAccepted) {
-    return await this.api.post("api/booking/mechanic/response", {
+    const response = await this.api.post("api/booking/mechanic/response", {
       mechanicId,
       serviceRequestId,
       isAccepted
     });
+    return response.data;
   }
   /**
    * Gets available mechanics for a specific service request
    */
   async getMechanicsForServiceRequest(serviceRequestId) {
-    return await this.api.get(`api/booking/request/${serviceRequestId}/mechanics`);
+    const response = await this.api.get(
+      `api/booking/request/${serviceRequestId}/mechanics`
+    );
+    return response.data;
   }
   /**
    * Confirms booking with a specific mechanic
+   * Removed userId parameter to match server implementation
    */
-  async confirmBookingWithMechanic(userId, serviceRequestId, mechanicId) {
-    return await this.api.post("api/booking/confirm", {
-      userId,
+  async confirmBookingWithMechanic(serviceRequestId, mechanicId) {
+    const response = await this.api.post("api/booking/confirm", {
       serviceRequestId,
       mechanicId
     });
+    return response.data;
   }
 };
 

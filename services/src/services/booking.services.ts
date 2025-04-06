@@ -1,23 +1,25 @@
 import { AxiosInstance } from "axios";
 import { api } from "../api.js";
-import { ServiceType } from "@prisma/client";
+import { ServiceType, ServiceStatus } from "@prisma/client";
 
-// Match the interface from the controller
+// Updated to match the server implementation
 export interface MechanicOffer {
-  mechanicId: string;
+  id: string;
   name: string;
-  rating: number;
-  distance: number;
-  estimatedArrivalTime: number; // in minutes
+  distance: {
+    text: string;
+    value: number;
+  };
+  duration: {
+    text: string;
+    value: number;
+  };
+  cost: number;
+  distanceText?: string;
+  estimatedCost?: number;
 }
 
-interface Car {
-  make: string;
-  model: string;
-  year: number;
-  licensePlate: string;
-}
-
+// Updated to match CreateServiceRequestDto from the server
 interface CreateServiceRequestDto {
   userId: string;
   serviceType: ServiceType;
@@ -25,19 +27,23 @@ interface CreateServiceRequestDto {
   longitude: number;
   description?: string;
   address?: string;
-  Car?: Car[]; // Added to match the controller definition
+  Car?: {
+    make: string;
+    model: string;
+    year: number;
+    licensePlate: string;
+  }[];
 }
 
 interface MechanicResponseDto {
+  mechanicId: string;
   serviceRequestId: string;
   isAccepted: boolean;
-  mechanicId: string;
 }
 
 interface ConfirmBookingDto {
   serviceRequestId: string;
   mechanicId: string;
-  userId: string;
 }
 
 export class BookingService {
@@ -88,14 +94,13 @@ export class BookingService {
 
   /**
    * Confirms booking with a specific mechanic
+   * Removed userId parameter to match server implementation
    */
   async confirmBookingWithMechanic(
-    userId: string,
     serviceRequestId: string,
     mechanicId: string
   ) {
     const response = await this.api.post("api/booking/confirm", {
-      userId,
       serviceRequestId,
       mechanicId,
     });

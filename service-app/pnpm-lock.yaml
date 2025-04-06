@@ -12,8 +12,8 @@ importers:
         specifier: ^14.0.2
         version: 14.0.4
       '@quick-aid/core':
-        specifier: 1.0.10
-        version: 1.0.10(typescript@5.8.2)
+        specifier: 1.0.11
+        version: 1.0.11(typescript@5.8.2)
       '@react-native-async-storage/async-storage':
         specifier: ^2.1.2
         version: 2.1.2(react-native@0.76.5(@babel/core@7.26.10)(@babel/preset-env@7.26.9(@babel/core@7.26.10))(@types/react@18.3.20)(react@18.3.1))
@@ -1146,8 +1146,8 @@ packages:
       typescript:
         optional: true
 
-  '@quick-aid/core@1.0.10':
-    resolution: {integrity: sha512-p1JrYXUwQjm15GfgCJFTTZww07rfSlbN98y79ef98oooMQKOe9xguH/qE/FSA20J5qAONHe4uX6UqICuLKI9lQ==}
+  '@quick-aid/core@1.0.11':
+    resolution: {integrity: sha512-NwxCplx65iBSvRyEFIfggSloUFTRqAebZwLhoKgdPBl8cMLU2/U15BASmMlgQUsDgbxT2rmIoRmwC+q053Rb8w==}
 
   '@radix-ui/react-compose-refs@1.0.0':
     resolution: {integrity: sha512-0KaSv6sx787/hK3eF53iOkiSLwAGlFMx5lotrqD2pTjB18KbybKoEIgkNZTKC60YECDQTKGTRcDBILwZVqVKvA==}
@@ -6558,7 +6558,7 @@ snapshots:
     optionalDependencies:
       typescript: 5.8.2
 
-  '@quick-aid/core@1.0.10(typescript@5.8.2)':
+  '@quick-aid/core@1.0.11(typescript@5.8.2)':
     dependencies:
       '@prisma/client': 6.5.0(typescript@5.8.2)
       axios: 1.8.4

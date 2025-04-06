@@ -4,7 +4,8 @@ import {
   UserService,
   MechanicDiscoveryService,
   ServiceRequestService,
-  PaymentService
+  PaymentService,
+  MechanicService
 } from "@quick-aid/core";
 
 const baseURL = process.env.EXPO_PUBLIC_API_URL!;
@@ -17,6 +18,7 @@ const messagesService = new MessagesService(baseURL!);
 const mechanicDiscoveryService = new MechanicDiscoveryService(baseURL!);
 const servicesRequestService = new ServiceRequestService(baseURL!);
 const paymentService = new PaymentService(baseURL!);
+const mechanicService = new MechanicService(baseURL!);
 
 export {
   authService,
@@ -25,4 +27,5 @@ export {
   mechanicDiscoveryService,
   servicesRequestService,
   paymentService,
+  mechanicService
 };

@@ -15,20 +15,42 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import uuid from 'react-native-uuid';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useAuthStore } from "@/src/state/useAuth";
+import { mechanicService, servicesRequestService } from "@/src/service";
+import { useMechanicStore } from "@/src/state/mechnic";
+import { paymentService } from "@/src/service";
+import { useLocationStore } from "@/src/store";
+import { router } from "expo-router";
 
 const API_URL = 'https://4zbptm0f-8000.inc1.devtunnels.ms/';
 
 // API call function using axios
-const sendChatMessage = async ({ chatId, serviceRequestId, userId, prompt }) => {
+const sendChatMessage = async ({ 
+  chatId, 
+  serviceRequestId, 
+  userId, 
+  prompt,
+  userLatitude,
+  userLongitude 
+}) => {
+  const defaultLatitude = 21.0942; // Dumas Beach latitude
+  const defaultLongitude = 72.7132; // Dumas Beach longitude
+  
+  // Use provided coordinates if available, otherwise use Dumas Beach coordinates
+  const latitude = userLatitude !== undefined ? userLatitude : defaultLatitude;
+  const longitude = userLongitude !== undefined ? userLongitude : defaultLongitude;
+  
   const response = await axios.post(API_URL, {
     chat_id: chatId,
     serviceRequestId,
     userId,
-    prompt
+    prompt,
+    latitude,
+    longitude,
   });
+  
   console.log(response.data);
   return response.data;
 };
@@ -37,7 +59,8 @@ const Chatbot = ({ route }) => {
   const { userId = "67e7c19b7b2e69af772a70b3" } = route?.params || {};
   const navigation = useNavigation();
   const scrollViewRef = useRef();
-  const {user} = useAuthStore();
+  const { user } = useAuthStore();
+  const { mechanic, setMechanic } = useMechanicStore();
 
   // Chat states
   const [messages, setMessages] = useState([]);
@@ -56,6 +79,8 @@ const Chatbot = ({ route }) => {
   const [mechanicOffers, setMechanicOffers] = useState([]);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [rating, setRating] = useState(0);
+
+  const { userAddress, userLatitude, userLongitude } = useLocationStore();
 
   // Set up TanStack Query mutation
   const chatMutation = useMutation({
@@ -99,12 +124,13 @@ const Chatbot = ({ route }) => {
 
   // Initialize chat with welcome message and create unique chat ID
   useEffect(() => {
-    const newChatId = user?.id || uuid.v4();
+    // const newChatId = user?.id || uuid.v4();
+    const newChatId = uuid.v4();
     setChatId(newChatId);
 
     const welcomeMessage = {
       id: newChatId,
-      text: "Welcome to QwikAid AI! I'm your emergency roadside assistance agent. How can I help you today?",
+      text: "Welcome to QwikAid AI! How can I help you today?",
       sender: "bot",
       timestamp: new Date().toISOString(),
       chatId: newChatId
@@ -119,6 +145,69 @@ const Chatbot = ({ route }) => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
   }, [messages]);
+
+
+  const [mechanicOffersWithRequests, setMechanicOffersWithRequests] = useState([]);
+
+  const { data: mechanicData, isLoading: isLoadingMechanic } = useQuery({
+    queryKey: ['serviceRequests', mechanicOffersWithRequests],
+    queryFn: async () => {
+      if (mechanicOffersWithRequests.length === 0) return null;
+
+      let attempts = 0;
+      const maxAttempts = 20;
+      let foundRequest = null;
+
+      while (!foundRequest && attempts < maxAttempts) {
+        // Check each service request in the array
+        for (const offer of mechanicOffersWithRequests) {
+          const serviceRequestData = await servicesRequestService.findOne(offer.serviceRequestId);
+
+          // If this request has a mechanicId assigned, we've found what we need
+          if (serviceRequestData.data?.mechanicId) {
+            console.log(`Found mechanicId ${serviceRequestData.data.mechanicId} in request ${offer.serviceRequestId}`);
+            foundRequest = serviceRequestData.data;
+            // Around line 144-149 in your code
+            const mechanic = await mechanicService.findOne(foundRequest.mechanicId);
+            setMechanic(mechanic.data);
+            setShowMechanicOffers(false); // Add this line to hide the offers
+            console.log("Mechanic data:", mechanic.data);
+
+            // Add this code to create a mechanic message in the chat
+            const mechanicMessage = {
+              id: uuid.v4(),
+              text: "Your mechanic has been assigned",
+              sender: "bot",
+              timestamp: new Date().toISOString(),
+              chatId,
+              mechanic1: {
+                name: mechanic.data.name,
+                image: mechanic.data.profileImage || "https://randomuser.me/api/portraits/men/32.jpg",
+                rating: mechanic.data.rating || 4.7,
+                eta: `${Math.round(mechanic.data.duration?.value / 60) || 15} mins`,
+                cost: mechanic.data.cost || "500-600"
+              }
+            };
+
+            setMessages(prev => [...prev, mechanicMessage]);
+            break; // Exit the loop once we find a request with mechanicId
+          }
+        }
+
+        if (foundRequest) break; // Exit polling if we found a request
+
+        // Wait before trying the next batch
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        attempts++;
+        console.log(`Polling attempt ${attempts}: checked ${mechanicOffersWithRequests.length} requests, no mechanicId found yet`);
+      }
+
+      return foundRequest;
+    },
+    refetchInterval: 30000, // Continue to refetch every 30 seconds
+    enabled: mechanicOffersWithRequests.length > 0, // Only run if we have requests to check
+    retry: false,
+  });
 
   // Function to handle API responses based on the "from" field
   const handleApiResponse = (data) => {
@@ -141,8 +230,17 @@ const Chatbot = ({ route }) => {
         setMechanicOffers(offers);
         setShowMechanicOffers(true);
 
+        setMechanicOffersWithRequests(
+          offers.map(mechanic => ({
+            mechanicId: mechanic.id,
+            serviceRequestId: responseItem.content.serviceRequestId
+          }))
+        );
+
+
+
         // Add a message about available mechanics
-        addMessage(`I found ${offers.length} mechanics available near you. Please select one:`, "bot");
+        addMessage(`I found ${offers.length} mechanics available near you. The AI will select best for you.`, "bot");
         break;
 
       case "getReviewsByUser":
@@ -303,7 +401,7 @@ const Chatbot = ({ route }) => {
       addMessage("Please specify what service you need:", "bot");
     } else {
       // Create service request message
-      const serviceMessage = `My vehicle needs ${service.title.toLowerCase()} assistance. I am at my current location.`;
+      const serviceMessage = `My vehicle needs ${service.title.toLowerCase()} assistance. I am at my current location that is: latitude: ${userLatitude} and longitude:${userLongitude} and my address is ${userAddress}.`;
       addMessage(serviceMessage, "user");
 
       // Send service request to API
@@ -332,20 +430,71 @@ const Chatbot = ({ route }) => {
   };
 
   // Handle payment confirmation
-  const handlePaymentConfirm = () => {
-    setShowPaymentModal(false);
-    setPaymentSuccess(true);
+  // Initialize the payment service with your API base URL
+  const handlePaymentConfirm = async (
+    amount: number,
+    serviceRequestId: string,
+    comment: string,
+  ) => {
+    // try {
+    //   // Step 1: Create the order using your backend service
+    //   const createOrderResponse = await paymentService.createOrder(
+    //     amount,
+    //     serviceRequestId,
+    //     comment
+    //   );
 
-    // Add payment success message to chat
-    addMessage("Payment completed successfully!", "user");
+    //   const { order } = createOrderResponse.data;
 
-    // Bot confirmation
-    addMessage("Thank you for your payment. The receipt has been sent to your email.", "bot");
+    //   // Step 2: Configure the Razorpay options
+    //   const options = {
+    //     description: 'Payment for service',
+    //     image: 'https://your-company-logo.png',
+    //     currency: 'INR',
+    //     key: process.env.RAZORPAY_KEY,
+    //     amount: order.amount,
+    //     name: 'QWICKAID',
+    //     order_id: order.id,
+    //     theme: { color: '#3399cc' }
+    //   };
 
-    // Hide success message after 3 seconds
-    setTimeout(() => {
-      setPaymentSuccess(false);
-    }, 3000);
+    //   // Step 3: Open Razorpay checkout
+    //   const paymentData = await RazorpayCheckout.open(options);
+
+    //   // Step 4: Verify the payment with your backend
+    //   const verifyResponse = await paymentService.verifyPayment(
+    //     paymentData.razorpay_payment_id,
+    //     paymentData.razorpay_order_id,
+    //     paymentData.razorpay_signature
+    //   );
+
+    //   // Step 5: Handle the verification response
+    //   if (verifyResponse.data.success) {
+    //     Alert.alert('Success', 'Your payment was successful!');
+    //     // Additional success handling (e.g., navigate to success screen)
+    //     return {
+    //       success: true,
+    //       payment: verifyResponse.data.payment
+    //     };
+    //   } else {
+    //     Alert.alert('Payment Failed', verifyResponse.data.message || 'Payment verification failed');
+    //     return {
+    //       success: false,
+    //       error: verifyResponse.data.message
+    //     };
+    //   }
+
+    // } catch (error) {
+    //   console.error('Payment process failed', error);
+    //   Alert.alert(
+    //     'Payment Failed',
+    //     error.response?.data?.message || error.message || 'An unexpected error occurred'
+    //   );
+    //   return {
+    //     success: false,
+    //     error: error.message
+    //   };
+    // }
   };
 
   // Handle rating submission
@@ -363,9 +512,7 @@ const Chatbot = ({ route }) => {
 
   // Navigate to tracking screen
   const navigateToTracking = () => {
-    addMessage("Taking you to the live tracking page...", "bot");
-    // In a real app, this would navigate to a tracking screen
-    // navigation.navigate('TrackingScreen', { serviceRequestId: currentServiceRequestId });
+    router.push('/(app)/route');
   };
 
   // Render individual message component
@@ -389,6 +536,27 @@ const Chatbot = ({ route }) => {
               </View>
               <Text className="text-gray-600">ETA: {message.mechanic.eta || "15 mins"}</Text>
               <Text className="text-gray-600">Cost: ₹{message.mechanic.cost || "500-600"}</Text>
+            </View>
+          </View>
+        </View>
+      );
+    }
+
+    // Replace your existing mechanic message rendering case
+    // Around line 425-445
+    if (message.mechanic1) {
+      return (
+        <View className="bg-white rounded-lg p-4 my-2 shadow-sm self-start max-w-[90%]">
+          <Text className="font-bold text-lg mb-2">Your Assigned Mechanic:</Text>
+          <View className="flex-row items-center">
+            <View className="ml-3">
+              <Text className="font-bold text-lg">{message.mechanic.name}</Text>
+              <View className="flex-row items-center">
+                <Text>{message.mechanic.rating}</Text>
+                <Ionicons name="star" size={14} color="#FFD700" style={{ marginLeft: 4 }} />
+              </View>
+              <Text className="text-gray-600">ETA: {message.mechanic.eta}</Text>
+              <Text className="text-gray-600">Cost: ₹{message.mechanic.cost}</Text>
             </View>
           </View>
         </View>
@@ -494,6 +662,7 @@ const Chatbot = ({ route }) => {
                 ))}
               </View>
             )}
+
           </>
         )}
       />
@@ -591,7 +760,8 @@ const Chatbot = ({ route }) => {
               </TouchableOpacity>
               <TouchableOpacity
                 className="bg-green-500 px-4 py-2 rounded-lg"
-                onPress={handlePaymentConfirm}
+                onPress={
+                  () => handlePaymentConfirm(500, "67f18fa1a1a883e8a57caf3d", "pAY")}
               >
                 <Text className="text-white font-bold">Pay Now</Text>
               </TouchableOpacity>
