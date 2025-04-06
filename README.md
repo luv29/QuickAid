@@ -53,7 +53,7 @@ A comprehensive solution for real-time roadside assistance, integrating agentic 
 * LLM returns a JSON response to the MCP Client.
 * Backend delivers the response to the User.
 
-## Real-time assistance matching
+### Real-time assistance matching
 ![image](https://github.com/user-attachments/assets/588cb926-50ed-418f-9ceb-7e3bde4a9ba5)
 
 * The client app captures the user's location and sends it to the backend via HTTP POST.
@@ -62,7 +62,7 @@ A comprehensive solution for real-time roadside assistance, integrating agentic 
 * Assistance vehicles send live location via WebSocket for real-time tracking.
 * The backend relays vehicle location updates to the client app.
 
-## Offline Support Architecture
+### Offline Support Architecture
 ![image](https://github.com/user-attachments/assets/2f96261e-19a0-4cf4-b624-1d82a605e6b7)
 
 * App uses geo-hashing to encode driver's GPS location for efficient proximity searches.
