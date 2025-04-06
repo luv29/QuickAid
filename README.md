@@ -17,11 +17,10 @@ A comprehensive solution for real-time roadside assistance, integrating agentic 
 |--------------------------|-----------------------------------------------------------------------------|
 | Agentic AI Support       | AI-powered assistant for navigating emergencies and coordinating help.       |
 | Live Map Tracking        | Real-time tracking of both users and responders on interactive maps.         |
-| SOS Mode                 | One-tap emergency button with live location and condition broadcasting.     |
+| SOS Mode                 | Three-shake emergency broadcasting with live location and condition broadcasting.     |
 | Offline Support          | Works seamlessly in areas with poor or no network coverage.                 |
 | Nearby Assistance        | Auto-connects to verified nearby service centers/mechanics.                |
 | Multilingual Support     | Available in multiple Indian languages for maximum accessibility.          |
-| Security First           | End-to-end encryption, data minimization, GDPR compliance, and more.       |
 | Payment Gateway          | Integrated payment support for seamless transactions.                      |
 | User Reviews             | Rate and review services for improved reliability and quality assurance.   |
 
@@ -35,7 +34,7 @@ A comprehensive solution for real-time roadside assistance, integrating agentic 
 | AI          | MCP (Model Context Protocol), Groq (AI Inference Engine), Langgraph (Agentic AI Builder)  |
 | Backend     | NestJS, Prisma                                         |
 | Database    | MongoDB, SQlite                                      |
-| Security    | JWT, Secure Auth, Real-time Monitoring, GDPR, Encryption |
+| Security    | JWT, Secure Auth, Real-time Monitoring |
 
 ---
 
@@ -82,7 +81,7 @@ Before you start, make sure you have the following installed:
 ### 1. Clone the Repository
 ```sh
 git clone https://github.com/jayesh9747/QuickAid.git
-cd QeikAid
+cd QwikAid
 ```
 
 ### 2. Set Up Environment Variables
@@ -133,7 +132,15 @@ Navigate to the frontend directory and run:
 npx expo start
 ```
 
+## Team Details
 
+Team Name: Drishtikon
+
+Team Members
+* Jayesh Sawaliya
+* Vaishnavi Mandhane
+* Luv Kansal
+* Kunj Vipul Goyal
 
 
 
