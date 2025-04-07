@@ -10,6 +10,9 @@ Picture a comprehensive roadside assistance system that jumps into action when y
 
 ---
 
+## Video Link: [Link](https://youtu.be/UXwAH9RPpto?si=Ws4gviCN_fvnWrUF)
+
+
 ## Key Features
 
 | Feature                  | Description                                                                 |
@@ -31,11 +34,49 @@ Picture a comprehensive roadside assistance system that jumps into action when y
 |-------------|--------------------------------------------------------|
 | Frontend    | React Native, Tailwind CSS, React Query                |
 | AI          | MCP (Model Context Protocol), Groq (AI Inference Engine), Langgraph (Agentic AI Builder)  |
-| Backend     | NestJS, Prisma, Apache kafka, Socket.io                                         |
+| Backend     | NestJS, Prisma, Apache Kafka, Socket.io                                         |
 | Database    | MongoDB, SQlite                                      |
 | Security    | JWT, Secure Auth, Real-time Monitoring |
 
 ---
+
+## App Screenshots
+### User App
+
+<div style="display: flex; overflow-x: auto; gap: 10px; margin-top: 10px;">
+  <img src="https://github.com/user-attachments/assets/dc363ff7-d964-4d00-99a7-0ac5108b8999" height="300" alt="UI Service App 5">
+  <img src="https://github.com/user-attachments/assets/d33e628f-6962-42ad-a41e-4ca1e54a590b" height="300" alt="UI Service App 8">
+  <img src="https://github.com/user-attachments/assets/5860adb3-f626-4358-a1a2-2ed0522c92ea" height="300" alt="UI Service App 6">
+  <img src="https://github.com/user-attachments/assets/0a630f0a-d2fa-46ef-9d3d-bb1b2a0c499d" height="300" alt="UI Service App 7">
+</div>
+
+<div style="display: flex; overflow-x: auto; gap: 10px;">
+  <img src="https://github.com/user-attachments/assets/efc4b551-4a3c-4f0c-bfaa-ea3e953cd9bc" height="300" alt="UI Service App 1">
+   <img src="https://github.com/user-attachments/assets/a490c2c3-6f43-4571-b931-f5ab5385569f" height="300" alt="UI Service App 10">
+   <img src="https://github.com/user-attachments/assets/69e6da90-a1ca-4549-82bb-902186198273" height="300" alt="UI Service App 9">
+    <img src="https://github.com/user-attachments/assets/4a5345e8-4711-4f09-9bbd-813746d15991" height="300" alt="UI Service App 2">
+</div>
+
+<div style="display: flex; overflow-x: auto; gap: 10px; margin-top: 10px;">
+   <img src="https://github.com/user-attachments/assets/68c2f580-519d-43da-a6ca-557a93ae39c9" height="300" alt="UI Service App 3">
+</div>
+
+### Service App
+
+<div style="display: flex; overflow-x: auto; gap: 10px;">
+  <img src="https://github.com/user-attachments/assets/1b36b55b-9301-4139-b062-173908479c6c" height="300" alt="Service App 8">
+  <img src="https://github.com/user-attachments/assets/0c8fe3ab-4a75-41db-91ac-298b98bee20b" height="300" alt="Service App 5">
+  <img src="https://github.com/user-attachments/assets/11ca7482-bbd8-4da8-9c20-0cf183a4a97b" height="300" alt="Service App 3">
+  <img src="https://github.com/user-attachments/assets/ab6e360d-9d6f-40d0-a992-0e6aecc12ae2" height="300" alt="Service App 1">
+</div>
+
+<div style="display: flex; overflow-x: auto; gap: 10px; margin-top: 10px;">
+  <img src="https://github.com/user-attachments/assets/1bdc974c-66fe-43f5-b32a-11c74afb117c" height="300" alt="Service App 9">
+  <img src="https://github.com/user-attachments/assets/69a01713-d629-4e40-a95b-96994848b34e" height="300" alt="Service App 2">
+  <img src="https://github.com/user-attachments/assets/22261107-776d-4dae-9314-4e0984a82bcc" height="300" alt="Service App 7">
+</div>
+
+
 
 ## User Flow
 
@@ -136,11 +177,8 @@ npx expo start
 Team Name: Drishtikon
 
 Team Members
-* Jayesh Sawaliya
+* Jayesh Savaliya { Team Lead }
 * Vaishnavi Mandhane
 * Luv Kansal
 * Kunj Vipul Goyal
-
-
-
 
